@@ -17,7 +17,6 @@
     "@nestjs/swagger": "^8.1.0",
     "@thesingularitynetwork/darkpool-v1-proof": "^0.2.21",
     "@thesingularitynetwork/singularity-sdk": "^0.0.11",
-    "dotenv": "^16.4.7",
     "ethers": "^6.13.4",
     "js-yaml": "^4.1.0",
     "reflect-metadata": "^0.2.2",

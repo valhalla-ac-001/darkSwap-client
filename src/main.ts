@@ -1,7 +1,6 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import * as dotenv from 'dotenv';
 import { WebSocket } from 'ws';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
@@ -9,7 +8,6 @@ import crypto from 'crypto';
 import { ConfigLoader } from './utils/configUtil';
 (global as any).crypto = crypto;
 
-dotenv.config();
 
 async function bootstrap() {
   ConfigLoader.getInstance();

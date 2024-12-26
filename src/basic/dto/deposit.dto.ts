@@ -1,4 +1,4 @@
-import { BaseDto } from './base.dto';
+import { BaseDto } from "src/common/dto/base.dto";
 
 export class DepositDto extends BaseDto {
   asset: string;
