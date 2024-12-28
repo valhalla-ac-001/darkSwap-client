@@ -1,6 +1,7 @@
 import { BaseDto } from "../../common/dto/base.dto";
 
-export class DepositDto extends BaseDto {
+export class WithdrawDto extends BaseDto {
   asset: string;
   amount: bigint;
+  receiptAddress: string;
 } 
