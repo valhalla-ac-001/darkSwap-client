@@ -1,12 +1,13 @@
-import { open, Database } from "better-sqlite3";
-import config from "../../config/dbConfig";
+import { Database } from 'better-sqlite3';
+import config from '../../config/dbConfig';
 
-class DatabaseService {
+export class DatabaseService {
   private static instance: DatabaseService;
   private db: Database;
 
   private constructor() {
     this.db = new Database(config.dbFile);
+    this.init();
   }
 
   public static getInstance(): DatabaseService {
@@ -17,31 +18,29 @@ class DatabaseService {
   }
 
   public async init() {
-    await this.createTables();
-  }
-
-  private async createTables() {
     for (const table of config.tables) {
       await this.db.exec(table);
     }
   }
-
 
   // Note operations
   public async addNote(
       chainId: number, 
       publicKey: string, 
       walletAddress: string, 
-      type: string, 
-      noteCommitment: string, 
-      rho: string, 
+      type: number, 
+      noteCommitment: bigint, 
+      rho: bigint, 
       asset: string, 
       amount: bigint, 
-      status: number) {
+      status: number,
+      txHashCreated: string): Promise<number> {
     const query = `INSERT INTO NOTES (
-      chain_id, public_key, wallet_address, type, note_commitment, rho, asset, amount, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-    await this.db.run(query, [chainId, publicKey, walletAddress, type, noteCommitment, rho, asset, amount, status]);
-  }
+      chain_id, public_key, wallet_address, type, note_commitment, rho, asset, amount, status, transaction_created) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const result =
+      await this.db.run(query, [chainId, publicKey, walletAddress, type, noteCommitment, rho, asset, amount, status, txHashCreated]);
+    return result.lastInsertRowid;
+    }
 
   public async getNotesByWalletAddress(walletAddress: string) {
     const query = `SELECT * FROM NOTES WHERE wallet_address = ?`;
@@ -51,6 +50,11 @@ class DatabaseService {
   public async updateNoteStatus(id: number, status: number) {
     const query = `UPDATE NOTES SET status = ? WHERE id = ?`;
     await this.db.run(query, [status, id]);
+  } 
+
+  public async updateNoteTransactionAndStatus(id: number, txHash: string) {
+    const query = `UPDATE NOTES SET transaction = ?, status = 0 WHERE id = ?`;
+    await this.db.run(query, [txHash, id]);
   } 
 
   // Asset pair operations
@@ -79,8 +83,8 @@ class DatabaseService {
       timeInForce: number, 
       stpMode: number, 
       price: string, 
-      amount: string, 
-      partialAmount: string, 
+      amount: bigint, 
+      partialAmount: bigint, 
       status: number, 
       wallet: string, 
       publicKey: string, 

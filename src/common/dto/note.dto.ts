@@ -1,4 +1,4 @@
-import { BaseDto } from '../../common/dto/base.dto';
+import { BaseDto } from './base.dto';
 
 export class noteDto extends BaseDto {
     publicKey: string;
@@ -8,4 +8,5 @@ export class noteDto extends BaseDto {
     asset: string;
     amount: bigint;
     status: number;
+    transactionCreated: string;
   } 

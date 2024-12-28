@@ -7,19 +7,21 @@ export class DarkpoolContext {
     chainId: number
     signer: Signer
     walletAddress: string
+    publicKey: string
     darkPool: DarkPool
     signature: string
 
-    private constructor(chain: number, wallet: string, signer: Signer, darkPool: DarkPool, signature: string) {
+    private constructor(chain: number, wallet: string, signer: Signer, pubKey: string ,darkPool: DarkPool, signature: string) {
         this.chainId = chain
         this.walletAddress = wallet
         this.signer = signer
+        this.publicKey = pubKey
         this.darkPool = darkPool
         this.signature = signature
     }
 
     static async createDarkpoolContext(chain: number, wallet: string) {
-        const signer = RpcManager.getInstance().getSigner(wallet, chain)
+        const [signer, pubKey] = RpcManager.getInstance().getSignerAndPublicKey(wallet, chain)
         const darkPool = getDarkPool(chain, signer)
 
         const domain = {
@@ -40,6 +42,6 @@ export class DarkpoolContext {
         };
 
         const signature = await signer.signTypedData(domain, types, value);
-        return new DarkpoolContext(chain, wallet, signer, darkPool, signature)
+        return new DarkpoolContext(chain, wallet, signer, pubKey, darkPool, signature)
     }
 } 

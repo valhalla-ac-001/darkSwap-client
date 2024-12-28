@@ -1,5 +1,3 @@
-import dotenv from 'dotenv';
-dotenv.config();
 
 export default{
     dbFile: process.env.DB_FILE_PATH || "/data/db.sqlite",
@@ -9,22 +7,23 @@ export default{
         `CREATE TABLE IF NOT EXISTS NOTES (
             id INTEGER PRIMARY KEY AUTOINCREMENT, 
             chain_id INTERGER NOT NULL, 
-            public_key VARCHAR NOT NULL, 
-            wallet_address VARCHAR NOT NULL,
-            type VARCHAR NOT NULL,
-            note_commitment VARCHAR NOT NULL, 
-            rho VARCHAR NOT NULL, 
-            asset VARCHAR NOT NULL, 
+            public_key TEXT NOT NULL, 
+            wallet_address TEXT NOT NULL,
+            type  INTERGER NOT NULL,
+            note_commitment TEXT NOT NULL, 
+            rho TEXT NOT NULL, 
+            asset TEXT NOT NULL, 
             amount NUMERIC NOT NULL
             status INTEGER NOT NULL
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            tx_hash_created TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON INSERT,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE
             );`,
             
         `CREATE TABLE IF NOT EXISTS ASSETS_PAIR (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            asset_a VARCHAR NOT NULL, 
-            asset_b VARCHAR NOT NULL, 
+            asset_a TEXT NOT NULL, 
+            asset_b TEXT NOT NULL, 
             chain_id INTERGER NOT NULL);`,
 
         //order_direction: 0: buy, 1: sell
@@ -55,12 +54,12 @@ export default{
             price TEXT NOT NULL,
             amount TEXT NOT NULL,
             partial_amount TEXT NOT NULL,
-            status integer NOT NULL,
+            status INTERGER NOT NULL,
             wallet TEXT NOT NULL,
             public_key TEXT NOT NULL,
-            note_id TEXT NOT NULL,
+            note_id INTERGER NOT NULL,
             signature TEXT NOT NULL
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON INSERT,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE);`,
     ]
 }

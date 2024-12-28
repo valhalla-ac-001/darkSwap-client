@@ -4,7 +4,7 @@ import { ConfigLoader } from './configUtil';
 class RpcManager {
   private static instance: RpcManager;
   private providers: Map<number, ethers.JsonRpcProvider>;
-  private signers: Map<string, ethers.Signer>;
+  private signers: Map<string, [ethers.Signer,string]>;
   private configLoader: ConfigLoader;
 
   private constructor() {
@@ -37,7 +37,7 @@ class RpcManager {
     return provider;
   }
 
-  public getSigner(walletAddress: string, chainId: number): ethers.Signer {
+  public getSignerAndPublicKey(walletAddress: string, chainId: number): [ethers.Signer, string] {
     const key = `${walletAddress}-${chainId}`;
     if (this.signers.has(key)) {
       return this.signers.get(key)!;
@@ -52,8 +52,9 @@ class RpcManager {
 
     const provider = this.getProvider(chainId);
     const signer = new ethers.Wallet(wallet.privateKey, provider);
-    this.signers.set(key, signer);
-    return signer;
+    const publicKey = ethers.SigningKey.computePublicKey(wallet.privateKey, true);
+    this.signers.set(key, [signer,publicKey]);
+    return [signer, publicKey];
   }
 
   public reloadProviders() {
