@@ -20,10 +20,12 @@ export default{
             updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE
             );`,
             
-        `CREATE TABLE IF NOT EXISTS ASSETS_PAIR (
+        `CREATE TABLE IF NOT EXISTS ASSET_PAIRS (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            assetA TEXT NOT NULL, 
-            assetB TEXT NOT NULL, 
+            assetA TEXT NOT NULL,
+            assetB TEXT NOT NULL,
+            symbolA TEXT NOT NULL,
+            symbolB TEXT NOT NULL,
             chain INTERGER NOT NULL
             createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON INSERT,
             updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE
@@ -55,13 +57,15 @@ export default{
             timeInForce INTERGER NOT NULL,
             stpMode INTERGER NOT NULL,
             price TEXT NOT NULL,
-            amount TEXT NOT NULL,
-            partialAmount TEXT NOT NULL,
+            amountOut TEXT NOT NULL,
+            amountIn TEXT NOT NULL,
+            partialAmountIn TEXT NOT NULL,
             status INTERGER NOT NULL,
             wallet TEXT NOT NULL,
             publicKey TEXT NOT NULL,
-            noteId INTERGER NOT NULL,
+            noteCommitment TEXT NOT NULL,
             signature TEXT NOT NULL
+            txHashCreated TEXT,
             createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON INSERT,
             updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE);`,
     ]

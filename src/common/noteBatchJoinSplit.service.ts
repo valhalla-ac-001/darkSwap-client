@@ -5,7 +5,7 @@ import { Note } from '@thesingularitynetwork/darkpool-v1-proof';
 
 export class NoteBatchJoinSplitService {
     
-    static async notesJoinSplit(notes: Note[], darkPoolContext: DarkpoolContext, amount: bigint):Promise<Note> | null {
+    static async notesJoinSplit(notes: Note[], darkPoolContext: DarkpoolContext, amount: bigint):Promise <Note> | null {
         const dbservice = DatabaseService.getInstance();
 
         if (notes[0].amount >= amount) {

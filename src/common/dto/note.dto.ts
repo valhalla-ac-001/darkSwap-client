@@ -1,6 +1,6 @@
 import { BaseDto } from './base.dto';
 
-export class noteDto extends BaseDto {
+export class NoteDto extends BaseDto {
     id: number;
     publicKey: string;
     type: string;

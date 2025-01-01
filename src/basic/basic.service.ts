@@ -40,7 +40,7 @@ export class BasicService {
     const withdrawService = new WithdrawService(darkPoolContext.darkPool);
     const dbservice = DatabaseService.getInstance();
 
-    const notes = await dbservice.getNoteByAsset(asset.address, darkPoolContext.chainId);
+    const notes = await dbservice.getNotesByAsset(asset.address, darkPoolContext.chainId);
 
     const notesToProcess = notes.map(note => {
       return {
