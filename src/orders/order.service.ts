@@ -1,10 +1,14 @@
 import { Injectable } from '@nestjs/common';
+import { OrderDto } from './order.dto';
+import { Note } from '@thesingularitynetwork/darkpool-v1-proof';
+import { DatabaseService } from '../common/db/database.service';
 
 @Injectable()
 export class OrderService {
   // Method to create an order
-  createOrder(orderData: any) {
-    // Logic to create an order
+  createOrder(orderDto: OrderDto) {
+
+
   }
 
   // Method to cancel an order

@@ -16,7 +16,7 @@
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/swagger": "^8.1.0",
     "@thesingularitynetwork/darkpool-v1-proof": "^0.2.21",
-    "@thesingularitynetwork/singularity-sdk": "^0.0.13",
+    "@thesingularitynetwork/singularity-sdk": "^0.0.14",
     "better-sqlite3": "^11.7.0",
     "crypto-browserify": "^3.12.1",
     "ethers": "^6.13.4",

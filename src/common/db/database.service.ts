@@ -2,7 +2,7 @@ import { Database } from 'better-sqlite3';
 import config from '../../config/dbConfig';
 import { noteDto } from '../dto/note.dto';
 import { assetPairDto } from '../dto/assetPair.dto';
-import { orderDto } from '../../orders/order.dto';
+import { OrderDto } from '../../orders/order.dto';
 
 export class DatabaseService {
   private static instance: DatabaseService;
@@ -147,6 +147,22 @@ export class DatabaseService {
 
   }
 
+  public async getAssetPair(assetA: string, assetB: string, chain: number): Promise<assetPairDto> {
+    const query = `SELECT * FROM ASSETS_PAIR WHERE asset_a = ? AND asset_b = ? AND chain_id = ?`;
+    const stmt = this.db.prepare(query);
+    let row = stmt.get(assetA, assetB, chain) as assetPairDto;
+    if (!row) {
+      row = stmt.get(assetB, assetA, chain) as assetPairDto;
+    }
+    const assetPair = {
+      id: row.id,
+      assetA: row.assetA,
+      assetB: row.assetB,
+      chain: row.chain,
+    };
+    return assetPair;
+  }
+
   public async getAssetPairById(assetPairId: number) : Promise<assetPairDto> {
     const query = `SELECT * FROM ASSETS_PAIR WHERE id = ?`;
     const stmt = this.db.prepare(query);
@@ -185,11 +201,11 @@ export class DatabaseService {
     await stmt.run(orderId, chain, assetPairId, orderDirection, orderType, timeInForce, stpMode, price, amount, partialAmount, status, wallet, publicKey, noteId, signature);
   }
 
-  public async getOrdersByStatusAndPage(status: number, page: number, limit: number): Promise<orderDto[]> {
+  public async getOrdersByStatusAndPage(status: number, page: number, limit: number): Promise<OrderDto[]> {
     const offset = (page - 1) * limit;
     const query = `SELECT * FROM ORDERS WHERE status = ? LIMIT ? OFFSET ?`;
     const stmt = this.db.prepare(query);
-    const rows = await stmt.all(status, limit, offset) as orderDto[];
+    const rows = await stmt.all(status, limit, offset) as OrderDto[];
     const orders = rows.map(row => ({
       id: row.id,
       orderId: row.orderId,

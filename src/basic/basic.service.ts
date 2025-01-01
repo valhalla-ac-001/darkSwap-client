@@ -40,85 +40,25 @@ export class BasicService {
     const withdrawService = new WithdrawService(darkPoolContext.darkPool);
     const dbservice = DatabaseService.getInstance();
 
-    let notes = await dbservice.getNoteByAssetAndAmount(asset.address, amount, darkPoolContext.chainId);
-    if (notes.length > 0) {
-      const noteToWithdraw = {
-        note: notes[0].noteCommitment,
-        rho: notes[0].rho,
-        asset: notes[0].asset,
-        amount: notes[0].amount
+    const notes = await dbservice.getNoteByAsset(asset.address, darkPoolContext.chainId);
+
+    const notesToProcess = notes.map(note => {
+      return {
+        note: note.noteCommitment,
+        rho: note.rho,
+        asset: note.asset,
+        amount: note.amount
       } as Note;
+    });
 
-      const { context: withdrawContext } = await withdrawService.prepare(
-        noteToWithdraw, receiptAddress, darkPoolContext.signature);
-      await withdrawService.generateProof(withdrawContext);
-      await withdrawService.executeAndWaitForResult(withdrawContext);
-      return;
-    } else {
-      notes = await dbservice.getNoteByAsset(asset.address, darkPoolContext.chainId);
-
-      if (notes[0].amount > amount) {
-        const noteToSplit = {
-          note: notes[0].noteCommitment,
-          rho: notes[0].rho,
-          asset: notes[0].asset,
-          amount: amount
-        } as Note;
-  
-        const splitservice = new SplitService(darkPoolContext.darkPool);
-        const {context : splitContext, outNotes} = await splitservice.prepare(noteToSplit, amount, darkPoolContext.signature);
-        const ids : number[] = []; 
-        for(let j = 0; j < outNotes.length; j++) {
-          ids[j] = await dbservice.addNote(
-            darkPoolContext.chainId, 
-            darkPoolContext.publicKey, 
-            darkPoolContext.walletAddress, 
-            0, 
-            outNotes[j].note,
-            outNotes[j].rho, 
-            outNotes[j].asset,
-            outNotes[j].amount,
-            3,
-            '');
-        }        
-        await splitservice.generateProof(splitContext);
-        const tx = await splitservice.execute(splitContext);
-
-        for (let j = 0; j < outNotes.length; j++) {
-          await dbservice.updateNoteTransactionAndStatus(ids[j], tx);
-        }
-  
-        const { context: withdrawContext } = await withdrawService.prepare(
-          outNotes[0], receiptAddress, darkPoolContext.signature);
-        await withdrawService.generateProof(withdrawContext);
-        await withdrawService.executeAndWaitForResult(withdrawContext);
-  
-        return;
-
-      } else{
-        const noteBatchJoinSplitService = new NoteBatchJoinSplitService();
-        
-        const notesToProcess = notes.map(note => {
-          return {
-            note: note.noteCommitment,
-            rho: note.rho,
-            asset: note.asset,
-            amount: note.amount
-          } as Note;
-        });
-
-        const noteToWithdraw = await noteBatchJoinSplitService.notesJoinSplit(notesToProcess, darkPoolContext, amount);
-        if (noteToWithdraw === null){
-          throw new Error("Insufficient funds");
-        }
-
-        const { context: withdrawContext } = await withdrawService.prepare(
-          noteToWithdraw, receiptAddress, darkPoolContext.signature);
-        await withdrawService.generateProof(withdrawContext);
-        await withdrawService.executeAndWaitForResult(withdrawContext);
-        return;
-
-      }
+    const noteToWithdraw = await NoteBatchJoinSplitService.notesJoinSplit(notesToProcess, darkPoolContext, amount);
+    if (noteToWithdraw === null){
+      throw new Error("Insufficient funds");
     }
+
+    const { context: withdrawContext } = await withdrawService.prepare(
+      noteToWithdraw, receiptAddress, darkPoolContext.signature);
+    await withdrawService.generateProof(withdrawContext);
+    await withdrawService.executeAndWaitForResult(withdrawContext);
   }
 }
