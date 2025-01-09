@@ -83,7 +83,7 @@ export class DatabaseService {
       asset: row.asset,
       amount: row.amount,
       status: row.status,
-      txHashCreated: row.txHashCreated,
+      txHashCreated: row.txHashCreated
     }));
 
     return notes;
@@ -104,7 +104,27 @@ export class DatabaseService {
       asset: row.asset,
       amount: row.amount,
       status: row.status,
-      txHashCreated: row.txHashCreated,
+      txHashCreated: row.txHashCreated
+    };
+    return note;
+  }
+
+  public async getNoteByOrderId(orderId: string): Promise<NoteDto> {
+    const query = `SELECT * FROM NOTES WHERE orderId = ?`;
+    const stmt = this.db.prepare(query);
+    const row = stmt.get(orderId) as NoteDto;
+    const note = {
+      id: row.id,
+      chainId: row.chainId,
+      publicKey: row.publicKey,
+      wallet: row.wallet,
+      type: row.type,
+      noteCommitment: row.noteCommitment,
+      rho: row.rho,
+      asset: row.asset,
+      amount: row.amount,
+      status: row.status,
+      txHashCreated: row.txHashCreated
     };
     return note;
   }

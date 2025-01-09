@@ -1,6 +1,7 @@
+import { ConfigLoader } from "src/utils/configUtil";
 
 export default{
-    dbFile: process.env.DB_FILE_PATH || "/data/db.sqlite",
+    dbFile: ConfigLoader.getInstance().getConfig().dbFilePath,
     tables:[
         //status: 0: normal, 1: used, 2: locked, 3: created
         //type: 0: note, 1: partial note

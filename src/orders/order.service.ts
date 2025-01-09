@@ -1,10 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { OrderDto } from './dto/order.dto';
+import { CancelOrderDto } from './dto/cancelOrder.dto';
 import { Note } from '@thesingularitynetwork/darkpool-v1-proof';
 import { DatabaseService } from '../common/db/database.service';
 import { DarkpoolContext } from '../common/context/darkpool.context';
 import { CreateMakerOrderService, CancelOrderService} from '@thesingularitynetwork/singularity-sdk';
 import { NoteBatchJoinSplitService } from 'src/common/noteBatchJoinSplit.service';
+import { ConfigLoader } from 'src/utils/configUtil';
+import { v4 } from 'uuid';
 import axios from 'axios';
 
 @Injectable()
@@ -12,10 +15,12 @@ export class OrderService {
   private static instance: OrderService;
   private dbService: DatabaseService;
   private noteBatchJoinSplitService: NoteBatchJoinSplitService;
+  private configLoader: ConfigLoader;
 
   public constructor() {
     this.dbService = DatabaseService.getInstance();
     this.noteBatchJoinSplitService = NoteBatchJoinSplitService.getInstance();
+    this.configLoader = ConfigLoader.getInstance();
   }
 
   async createOrder(orderDto: OrderDto, darkPoolContext: DarkpoolContext) {
@@ -37,6 +42,9 @@ export class OrderService {
     const {context, outNotes} = await createMakerOrderService.prepare(noteForOrder,darkPoolContext.signature);
     await createMakerOrderService.generateProof(context);
     const tx = await createMakerOrderService.execute(context);
+    if (!orderDto.orderId){
+      orderDto.orderId = v4();
+    }
     orderDto.status = 0;
     orderDto.nullifier = BigInt(context.proof.outNullifier);
     orderDto.txHashCreated = tx;
@@ -45,20 +53,21 @@ export class OrderService {
     await this.dbService.addOrderByDto(orderDto);
 
     delete orderDto.noteCommitment;
-    await axios.post(`${process.env.BOOKNODE_API_URL}/order/createOrder`, orderDto,{
+    await axios.post(`${this.configLoader.getConfig().bookNodeApiUrl}/order/createOrder`, orderDto,{
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.BOOKNODE_API_KEY}`
+        'Authorization': `Bearer ${this.configLoader.getConfig().bookNodeApiKey}`
       }
     });
   }
 
   // Method to cancel an order
-  async cancelOrder(cancelOrderDto: OrderDto, darkPoolContext: DarkpoolContext) {
+  async cancelOrder(orderId: string, darkPoolContext: DarkpoolContext) {
     
     const cancelOrderService = new CancelOrderService(darkPoolContext.darkPool);
 
-    const note = await this.dbService.getNoteByCommitment(cancelOrderDto.noteCommitment);
+    const note = await this.dbService.getNoteByOrderId(orderId);
+    
     const noteToProcess = {
       note: note.noteCommitment,
       rho: note.rho,
@@ -66,14 +75,20 @@ export class OrderService {
       amount: note.amount
     } as Note;
 
+    const cancelOrderDto = {
+      orderId: orderId,
+      chainId: darkPoolContext.chainId,
+      wallet: darkPoolContext.walletAddress
+    } as CancelOrderDto;
+    
     const {context, outNotes} = await cancelOrderService.prepare(noteToProcess, darkPoolContext.signature);
     await cancelOrderService.generateProof(context);
     await cancelOrderService.execute(context);
     await this.dbService.cancelOrder(cancelOrderDto.orderId);
-    await axios.post(`${process.env.BOOKNODE_API_URL}/order/cancelOrder`, cancelOrderDto,{
+    await axios.post(`${this.configLoader.getConfig().bookNodeApiUrl}/order/cancelOrder`, cancelOrderDto,{
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.BOOKNODE_API_KEY}`
+        'Authorization': `Bearer ${this.configLoader.getConfig().bookNodeApiKey}`
       }
     });
   }

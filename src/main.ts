@@ -28,12 +28,13 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  await app.listen(3001);
+  await app.listen(3000);
   startWebSocket();
 }
 
 function startWebSocket() {
-  const booknodeUrl = process.env.BOOKNODE_SOCKET_URL;
+  const booknodeUrl = ConfigLoader.getInstance().getConfig().bookNodeSocketUrl;
+
   if (!booknodeUrl) {
     throw new Error('BOOKNODE_URL is not set');
   }
@@ -51,16 +52,16 @@ function startWebSocket() {
     console.log('Disconnected from BookNode server');
   });
 
-  ws.on('message', (data) => {
+  ws.on('message', async (data) => {
     try{
       const settlementService = SettlementService.getInstance();
       const notificationEvent = JSON.parse(data.toString());
       switch (notificationEvent.eventType) {
         case 1:
-          settlementService.takerSwap(notificationEvent.orderId);
+          await settlementService.takerSwap(notificationEvent.orderId);
           break;
         case 2:
-          settlementService.makerSwap(notificationEvent.orderId);
+          await settlementService.makerSwap(notificationEvent.orderId);
           break;
         default:
           console.log('Unknown event:', notificationEvent);

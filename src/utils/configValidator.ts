@@ -18,10 +18,20 @@ const ChainRpcSchema = z.object({
   rpcUrl: z.string().url()
 });
 
+
+const dbFilePathScema = z.string().nonempty();
+const bookNodeSocketUrlScema = z.string().url();
+const bookNodeApiUrlSchema = z.string().url();
+const bookNodeApiKeySchema = z.string().nonempty();
+
 export const ConfigSchema = z.object({
   wallets: z.array(WalletSchema),
   relayers: z.array(RelayerSchema),
-  chainRpcs: z.array(ChainRpcSchema)
+  chainRpcs: z.array(ChainRpcSchema),
+  dbFilePath: dbFilePathScema,
+  bookNodeSocketUrl: bookNodeSocketUrlScema,
+  bookNodeApiUrl: bookNodeApiUrlSchema,
+  bookNodeApiKey: bookNodeApiKeySchema
 });
 
 export function validateConfig(config: unknown) {
@@ -44,4 +54,8 @@ export function validateConfig(config: unknown) {
 export type WalletConfig = z.infer<typeof WalletSchema>;
 export type RelayerConfig = z.infer<typeof RelayerSchema>;
 export type ChainRpcConfig = z.infer<typeof ChainRpcSchema>;
+export type DbFilePathConfig = z.infer<typeof dbFilePathScema>;
+export type BookNodeSocketUrlConfig = z.infer<typeof bookNodeSocketUrlScema>;
+export type BookNodeApiUrlConfig = z.infer<typeof bookNodeApiUrlSchema>;
+export type BookNodeApiKeyConfig = z.infer<typeof bookNodeApiKeySchema>;
 export type Config = z.infer<typeof ConfigSchema>;

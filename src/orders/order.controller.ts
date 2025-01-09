@@ -13,9 +13,9 @@ export class OrderController {
     return this.orderService.createOrder(orderDto, context);
   }
 
-  async cancel(@Body() cancelOrderDto: OrderDto) {
-    const context = await DarkpoolContext.createDarkpoolContext(cancelOrderDto.chainId, cancelOrderDto.wallet)
-    return this.orderService.cancelOrder(cancelOrderDto, context);
+  async cancel(@Body() orderId: string, wallet: string, chainId: number) {
+    const context = await DarkpoolContext.createDarkpoolContext(chainId, wallet)
+    return this.orderService.cancelOrder(orderId, context);
   }
 
 

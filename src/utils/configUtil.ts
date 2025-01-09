@@ -15,8 +15,7 @@ export class ConfigLoader {
 
     private loadConfig() {
         try {
-            const configPath = process.env.CONFIG_PATH ||
-                join(process.cwd(), 'config.yaml');
+            const configPath = process.env.NODE_ENV  === 'dev' ? './config.yaml' : '/data/config.yaml';
 
             const fileContent = fs.readFileSync(configPath, 'utf8');
             this.config = yaml.load(fileContent);

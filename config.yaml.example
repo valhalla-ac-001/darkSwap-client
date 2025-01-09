@@ -20,3 +20,8 @@ chainRpcs:
     rpcUrl: "https://app.dev.portalgate.me:38545"
   - chainId: 31337
     rpcUrl: "https://app.dev.portalgate.me:18545"
+
+dbFilePath : /data/db.sqlite3
+bookNodeSocketUrl: 
+bookNodeApiUrl:
+bookNodeApiKey:
