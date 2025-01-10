@@ -27,7 +27,7 @@ export class OrderService {
     const createMakerOrderService = new CreateMakerOrderService(darkPoolContext.darkPool);
 
     const assetPair = await this.dbService.getAssetPairById(orderDto.assetPairId);
-    const outAsset = orderDto.orderDirection === 0 ? assetPair.assetB : assetPair.assetA;
+    const outAsset = orderDto.orderDirection === 0 ? assetPair.quoteAddress : assetPair.baseAddress;
     const notes = await this.dbService.getNotesByAsset(outAsset, darkPoolContext.chainId);
     const notesToProcess = notes.map(note => {
       return {

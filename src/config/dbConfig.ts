@@ -23,11 +23,13 @@ export default{
             
         `CREATE TABLE IF NOT EXISTS ASSET_PAIRS (
             id TEXT PRIMARY KEY,
-            assetA TEXT NOT NULL,
-            assetB TEXT NOT NULL,
-            symbolA TEXT NOT NULL,
-            symbolB TEXT NOT NULL,
-            chainId INTERGER NOT NULL
+            chainId INTERGER NOT NULL,
+            baseAddress TEXT NOT NULL,
+            baseSymbol TEXT NOT NULL,
+            baseDecimal INTERGER NOT NULL,
+            quoteAddress TEXT NOT NULL,
+            quoteSymbol TEXT NOT NULL,
+            quoteDecimal INTERGER NOT NULL,
             createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON INSERT,
             updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE
             );`,

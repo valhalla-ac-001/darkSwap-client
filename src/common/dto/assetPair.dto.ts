@@ -1,9 +1,11 @@
 
 export class AssetPairDto {
-    id: number;
-    assetA: string;
-    assetB: string;
-    symbolA: string;
-    symbolB: string;
-    chainId: number;
-  } 
+  id: string;
+  chainId: number;
+  baseAddress: string;
+  baseSymbol: string;
+  baseDecimal: number;
+  quoteAddress: string;
+  quoteSymbol: string;
+  quoteDecimal: number;
+} 

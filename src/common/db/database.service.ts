@@ -165,10 +165,10 @@ export class DatabaseService {
   } 
 
   // Asset pair operations
-  public async addAssetPair(id: string, assetA: string, assetB: string, symbolA : string, symbolB : string, chainId: number) {
-    const query = `INSERT INTO ASSET_PAIRS (id, assetA, assetB, symbolA,  symbolB, chainId) VALUES (?, ?, ?, ?, ?, ?)`;
+  public async addAssetPair(assetPair: AssetPairDto) {
+    const query = `INSERT INTO ASSET_PAIRS ( id, chainId, baseAddress, baseSymbol, baseDecimal, quoteAddress, quoteSymbol, quoteDecimal) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
     const stmt = this.db.prepare(query);
-    await stmt.run(id, assetA, assetB, symbolA, symbolB, chainId);
+    await stmt.run(assetPair.id, assetPair.chainId, assetPair.baseAddress, assetPair.baseSymbol, assetPair.baseDecimal, assetPair.quoteAddress, assetPair.quoteSymbol, assetPair.quoteDecimal);
   }
 
   public async getAssetPairs(chainId: number): Promise<AssetPairDto[]> {
@@ -178,33 +178,17 @@ export class DatabaseService {
 
     const assetPairs = rows.map(row => ({
       id: row.id,
-      assetA: row.assetA,
-      assetB: row.assetB,
-      symbolA: row.symbolA,
-      symbolB: row.symbolB,
       chainId: row.chainId,
+      baseAddress: row.baseAddress,
+      baseSymbol: row.baseSymbol,
+      baseDecimal: row.baseDecimal,
+      quoteAddress: row.quoteAddress,
+      quoteSymbol: row.quoteSymbol,
+      quoteDecimal: row.quoteDecimal,
     }));
 
     return assetPairs;
 
-  }
-
-  public async getAssetPair(assetA: string, assetB: string, chainId: number): Promise<AssetPairDto> {
-    const query = `SELECT * FROM ASSET_PAIRS WHERE assetA = ? AND assetB = ? AND chainId = ?`;
-    const stmt = this.db.prepare(query);
-    let row = stmt.get(assetA, assetB, chainId) as AssetPairDto;
-    if (!row) {
-      row = stmt.get(assetB, assetA, chainId) as AssetPairDto;
-    }
-    const assetPair = {
-      id: row.id,
-      assetA: row.assetA,
-      assetB: row.assetB,
-      symbolA: row.symbolA,
-      symbolB: row.symbolB,
-      chainId: row.chainId,
-    };
-    return assetPair;
   }
 
   public async getAssetPairById(assetPairId: string) : Promise<AssetPairDto> {
@@ -213,11 +197,13 @@ export class DatabaseService {
     const row = stmt.get(assetPairId) as AssetPairDto;
     const assetPair = {
       id: row.id,
-      assetA: row.assetA,
-      assetB: row.assetB,
-      symbolA: row.symbolA,
-      symbolB: row.symbolB,
       chainId: row.chainId,
+      baseAddress: row.baseAddress,
+      baseSymbol: row.baseSymbol,
+      baseDecimal: row.baseDecimal,
+      quoteAddress: row.quoteAddress,
+      quoteSymbol: row.quoteSymbol,
+      quoteDecimal: row.quoteDecimal,
     };
     return assetPair;
 

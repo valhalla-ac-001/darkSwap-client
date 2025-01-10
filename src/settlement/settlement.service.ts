@@ -36,7 +36,7 @@ export class SettlementService {
       amount: rawNote.amount
     } as Note;
     const assetPair = await this.dbService.getAssetPairById(orderInfo.assetPairId);
-    const takerAsset = orderInfo.orderDirection === 0 ? assetPair.assetB : assetPair.assetA;
+    const takerAsset = orderInfo.orderDirection === 0 ? assetPair.quoteAddress : assetPair.baseAddress;
     const darkPoolContext = await DarkpoolContext.createDarkpoolContext(orderInfo.chainId, orderInfo.wallet);
 
     const settlementDto = new SettlementDto();
@@ -96,8 +96,8 @@ export class SettlementService {
       amount: rawNote.amount
     } as Note;
     const assetPair = await this.dbService.getAssetPairById(orderInfo.assetPairId);
-    const takerAsset = orderInfo.orderDirection === 0 ? assetPair.assetB : assetPair.assetA;
-    const makerAsset = orderInfo.orderDirection === 0 ? assetPair.assetA : assetPair.assetB;
+    const takerAsset = orderInfo.orderDirection === 0 ? assetPair.quoteAddress : assetPair.baseAddress;
+    const makerAsset = orderInfo.orderDirection === 0 ? assetPair.baseAddress : assetPair.quoteAddress;
     const darkPoolContext = await DarkpoolContext.createDarkpoolContext(orderInfo.chainId, orderInfo.wallet);
 
     const settlementDto = new SettlementDto();

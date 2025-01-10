@@ -4,6 +4,7 @@ import { AppModule } from './app.module';
 import { WebSocket } from 'ws';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { SettlementService }  from './settlement/settlement.service';
+import { AssetPairService } from './common/assetPair.service';
 
 import * as crypto from 'crypto';
 import { ConfigLoader } from './utils/configUtil';
@@ -11,6 +12,7 @@ import { ConfigLoader } from './utils/configUtil';
 
 async function bootstrap() {
   ConfigLoader.getInstance();
+  const assetPairService = AssetPairService.getInstance();
 
   (global as any).crypto = {
     getRandomValues: (buffer: Uint8Array) => crypto.randomFillSync(buffer),
@@ -27,6 +29,8 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
+
+  await assetPairService.syncAssetPairs();
 
   await app.listen(3000);
   startWebSocket();
@@ -55,6 +59,7 @@ function startWebSocket() {
   ws.on('message', async (data) => {
     try{
       const settlementService = SettlementService.getInstance();
+      const assetPairService = AssetPairService.getInstance();
       const notificationEvent = JSON.parse(data.toString());
       switch (notificationEvent.eventType) {
         case 1:
@@ -62,6 +67,9 @@ function startWebSocket() {
           break;
         case 2:
           await settlementService.makerSwap(notificationEvent.orderId);
+          break;
+        case 3:
+          await assetPairService.syncAssetPair(notificationEvent.assetPairId);
           break;
         default:
           console.log('Unknown event:', notificationEvent);
