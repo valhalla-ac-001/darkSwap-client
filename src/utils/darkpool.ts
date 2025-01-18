@@ -9,10 +9,9 @@ export function getDarkPool(chainId: number, signer: Signer) {
         throw new Error(`ChainId ${chainId} not supported`)
     }
 
-    const darkPool = new DarkPool()
-    darkPool.init(
-        signer, 
-        chainId, 
+    const darkPool = new DarkPool(
+        signer,
+        chainId,
         relayerConfig[chainId],
         {
             darkpoolAssetManager: networkConfig[chainId].darkpoolAssetManager,

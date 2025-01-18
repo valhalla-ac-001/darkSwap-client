@@ -70,6 +70,18 @@
     debug "^4.3.4"
     tslib "^2.4.0"
 
+"@aztec/bb.js@^0.70.0":
+  version "0.70.0"
+  resolved "https://registry.yarnpkg.com/@aztec/bb.js/-/bb.js-0.70.0.tgz#172d451803fe21e6427620d32a7ec9e2aa2eda8f"
+  integrity sha512-qljKIYZ6wmVaAcR6XSlC897VbgxM/i3UmkxwqVQQJ5xk3DBJqRS7FBQvBV6HREbzKs9qFgm1UWfyV+LrWxHExA==
+  dependencies:
+    comlink "^4.4.1"
+    commander "^12.1.0"
+    debug "^4.3.4"
+    fflate "^0.8.0"
+    pako "^2.1.0"
+    tslib "^2.4.0"
+
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.12.13", "@babel/code-frame@^7.16.7", "@babel/code-frame@^7.25.9", "@babel/code-frame@^7.26.0", "@babel/code-frame@^7.26.2":
   version "7.26.2"
   resolved "https://registry.npmjs.org/@babel/code-frame/-/code-frame-7.26.2.tgz"
@@ -1276,21 +1288,6 @@
   dependencies:
     "@sinonjs/commons" "^3.0.0"
 
-"@thesingularitynetwork/darkpool-v1-proof@^0.2.32":
-  version "0.2.32"
-  resolved "https://registry.yarnpkg.com/@thesingularitynetwork/darkpool-v1-proof/-/darkpool-v1-proof-0.2.32.tgz#e8751485026b1167f42135cd372aab0173b36b84"
-  integrity sha512-cZtSTHvH8wPgE5tSy5M0qrjxGKXZLloG3T9CJi0wtOiYKZai2dWN11lx4GKBAUhrTkeN/8Ab0Z8VVB19cTFWqQ==
-  dependencies:
-    "@aztec/bb.js" "^0.30.0"
-    "@ethersproject/abi" "^5.7.0"
-    "@ethersproject/bignumber" "^5.7.0"
-    "@ethersproject/sha2" "^5.7.0"
-    "@noir-lang/backend_barretenberg" "^0.28.0"
-    "@noir-lang/noir_js" "^0.28.0"
-    "@noir-lang/noir_wasm" "^0.28.0"
-    "@noir-lang/types" "^0.28.0"
-    buffer "^6.0.3"
-
 "@thesingularitynetwork/darkpool-v1-proof@^0.2.34":
   version "0.2.34"
   resolved "https://registry.yarnpkg.com/@thesingularitynetwork/darkpool-v1-proof/-/darkpool-v1-proof-0.2.34.tgz#113b021842a682a1bdd040c5cabe3aaa1a83cbc0"
@@ -1306,14 +1303,14 @@
     "@noir-lang/types" "^0.28.0"
     buffer "^6.0.3"
 
-"@thesingularitynetwork/singularity-sdk@^0.0.24":
-  version "0.0.24"
-  resolved "https://registry.yarnpkg.com/@thesingularitynetwork/singularity-sdk/-/singularity-sdk-0.0.24.tgz#544248e350013f9b44e3d50927d2fa51eb7dfdb5"
-  integrity sha512-RcoxlX/kb6WAxYmqZeVQHtazjBDZFw47Aa37V0Xr1SR8vW/J4VucpIa+u1s3l9S72WPj5Fg/JWFQ7riIw29ERw==
+"@thesingularitynetwork/singularity-sdk@^0.0.29":
+  version "0.0.29"
+  resolved "https://registry.yarnpkg.com/@thesingularitynetwork/singularity-sdk/-/singularity-sdk-0.0.29.tgz#7d92ec79d0fa1e554165140f039f543db32a7c2e"
+  integrity sha512-OYFVTwRKMl0Z9pytAHgraFDvJNi2xKOPBB2lxjz4485egVAw9e7nxbp86pgXOGEIyDned5etys8xwo+s4bjZog==
   dependencies:
     "@ethersproject/abi" "^5.0.12"
     "@ethersproject/solidity" "^5.0.9"
-    "@thesingularitynetwork/darkpool-v1-proof" "^0.2.32"
+    "@thesingularitynetwork/darkpool-v1-proof" "^0.2.34"
     "@uniswap/permit2-sdk" "^1.2.0"
     "@uniswap/v3-periphery" "^1.4.4"
     "@uniswap/v3-sdk" "^3.11.0"
@@ -1950,6 +1947,13 @@ array-timsort@^1.0.3:
   resolved "https://registry.npmjs.org/array-timsort/-/array-timsort-1.0.3.tgz"
   integrity sha512-/+3GRL7dDAGEfM6TseQk/U+mi18TU2Ms9I3UlLdUMhz2hbvGNTKdj9xniwXfUqgYhHxRx0+8UnKkvlNwVU+cWQ==
 
+asn1@^0.2.4:
+  version "0.2.6"
+  resolved "https://registry.yarnpkg.com/asn1/-/asn1-0.2.6.tgz#0d3a7bb6e64e02a90c0303b31f292868ea09a08d"
+  integrity sha512-ix/FxPn0MDjeyJ7i/yoHGFt/EX6LyNbxSEhPPXODPL+KB0VPk86UYfL0lMdy+KCnv+fmvIzySwaK5COwqVbWTQ==
+  dependencies:
+    safer-buffer "~2.1.0"
+
 async@^3.2.3:
   version "3.2.6"
   resolved "https://registry.npmjs.org/async/-/async-3.2.6.tgz"
@@ -2399,6 +2403,11 @@ commander@^10.0.1:
   version "10.0.1"
   resolved "https://registry.npmjs.org/commander/-/commander-10.0.1.tgz"
   integrity sha512-y4Mg2tXshplEbSGzx7amzPwKKOCGuoSRP/CjEdwwk0FOGlUbq6lKuoyDZTNZkmxHdJtp54hdfY/JUrdL7Xfdug==
+
+commander@^12.1.0:
+  version "12.1.0"
+  resolved "https://registry.yarnpkg.com/commander/-/commander-12.1.0.tgz#01423b36f501259fdaac4d0e4d60c96c991585d3"
+  integrity sha512-Vw8qHK3bZM9y/P10u3Vib8o/DdkvA2OtPtZvD871QKjy74Wj1WSKFILMPRPSdUSx5RFK1arlJzEtA4PkFgnbuA==
 
 commander@^2.20.0:
   version "2.20.3"
@@ -4431,6 +4440,13 @@ node-releases@^2.0.19:
   resolved "https://registry.npmjs.org/node-releases/-/node-releases-2.0.19.tgz"
   integrity sha512-xxOWJsBKtzAq7DY0J+DTzuz58K8e7sJbdgwkbMWQe8UYB6ekmsQ45q0M/tJDsGaZmbC+l7n57UV8Hl5tHxO9uw==
 
+node-rsa@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/node-rsa/-/node-rsa-1.1.1.tgz#efd9ad382097782f506153398496f79e4464434d"
+  integrity sha512-Jd4cvbJMryN21r5HgxQOpMEqv+ooke/korixNNK3mGqfGJmy0M77WDDzo/05969+OkMy3XW1UuZsSmW9KQm7Fw==
+  dependencies:
+    asn1 "^0.2.4"
+
 normalize-path@^3.0.0, normalize-path@~3.0.0:
   version "3.0.0"
   resolved "https://registry.npmjs.org/normalize-path/-/normalize-path-3.0.0.tgz"
@@ -4898,7 +4914,7 @@ safe-buffer@~5.1.0, safe-buffer@~5.1.1:
   resolved "https://registry.npmjs.org/safe-buffer/-/safe-buffer-5.1.2.tgz"
   integrity sha512-Gd2UZBJDkXlY7GbJxfsE8/nvKkUEU1G38c1siN6QP6a9PT9MmHB8GnpscSmMJSoF8LOIrt8ud/wPtojys4G6+g==
 
-"safer-buffer@>= 2.1.2 < 3":
+"safer-buffer@>= 2.1.2 < 3", safer-buffer@~2.1.0:
   version "2.1.2"
   resolved "https://registry.npmjs.org/safer-buffer/-/safer-buffer-2.1.2.tgz"
   integrity sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==

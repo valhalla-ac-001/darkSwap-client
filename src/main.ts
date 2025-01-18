@@ -1,16 +1,16 @@
-import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import 'reflect-metadata';
 import { WebSocket } from 'ws';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { SettlementService } from './settlement/settlement.service';
+import { AppModule } from './app.module';
 import { AssetPairService } from './common/assetPair.service';
+import { SettlementService } from './settlement/settlement.service';
 import { ConfigLoader } from './utils/configUtil';
 
 enum EventType {
   OrderMatched = 1,
   OrderConfirm = 2,
-  OrderStatusChanged = 3,
+  OrderSettled = 3,
   AssetPairCreated = 4,
   Unknown = 0
 }
@@ -80,6 +80,9 @@ function startWebSocket() {
             break;
           case EventType.OrderConfirm:
             await settlementService.makerSwap(notificationEvent.orderId);
+            break;
+          case EventType.OrderSettled:
+            await settlementService.takerPostSettlement(notificationEvent.orderId, notificationEvent.txHash || '');
             break;
           case EventType.AssetPairCreated:
             await assetPairService.syncAssetPair(notificationEvent.assetPairId, notificationEvent.chainId);

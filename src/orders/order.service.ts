@@ -1,16 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { OrderDto } from './dto/order.dto';
-import { CancelOrderDto } from './dto/cancelOrder.dto';
 import { Note } from '@thesingularitynetwork/darkpool-v1-proof';
-import { DatabaseService } from '../common/db/database.service';
-import { DarkpoolContext } from '../common/context/darkpool.context';
-import { CreateMakerOrderService, CancelOrderService } from '@thesingularitynetwork/singularity-sdk';
-import { NoteBatchJoinSplitService } from 'src/common/noteBatchJoinSplit.service';
-import { ConfigLoader } from 'src/utils/configUtil';
-import { v4 } from 'uuid';
+import { CancelOrderService, CreateMakerOrderService } from '@thesingularitynetwork/singularity-sdk';
 import axios from 'axios';
 import { AssetPairDto } from 'src/common/dto/assetPair.dto';
+import { NoteBatchJoinSplitService } from 'src/common/noteBatchJoinSplit.service';
 import { NoteStatus, OrderDirection } from 'src/types';
+import { ConfigLoader } from 'src/utils/configUtil';
+import { v4 } from 'uuid';
+import { DarkpoolContext } from '../common/context/darkpool.context';
+import { DatabaseService } from '../common/db/database.service';
+import { CancelOrderDto } from './dto/cancelOrder.dto';
+import { OrderDto } from './dto/order.dto';
 
 interface BookNodeCreateOrderDto {
   chainId: number;
