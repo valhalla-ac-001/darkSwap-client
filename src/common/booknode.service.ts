@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { ConfigLoader } from '../utils/configUtil';
-import { SettlementDto } from 'src/settlement/dto/settlement.dto';
-import { MatchedOrderDto } from 'src/settlement/dto/matchedOder.dto';
-import { TakerConfirmDto } from 'src/settlement/dto/takerConfirm.dto';
+import { SettlementDto } from '../settlement/dto/settlement.dto';
+import { MatchedOrderDto } from '../settlement/dto/matchedOder.dto';
+import { TakerConfirmDto } from '../settlement/dto/takerConfirm.dto';
 
 interface BookNodeMatchedOrder {
     orderId: string;

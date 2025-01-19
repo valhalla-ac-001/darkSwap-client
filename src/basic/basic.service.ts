@@ -2,9 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { DepositService, Token, WithdrawService, BatchJoinSplitService, SplitService, isAddressCompliant, DarkPool } from '@thesingularitynetwork/singularity-sdk';
 import { DarkpoolContext } from '../common/context/darkpool.context';
 import { DatabaseService } from '../common/db/database.service';
-import { NoteBatchJoinSplitService } from 'src/common/noteBatchJoinSplit.service';
+import { NoteBatchJoinSplitService } from '../common/noteBatchJoinSplit.service';
 import { Note } from '@thesingularitynetwork/darkpool-v1-proof';
-import { NoteStatus } from 'src/types';
+import { NoteStatus } from '../types';
+import { BaseDto } from '../common/dto/base.dto';
+import { AssetDto } from './dto/asset.dto';
 
 @Injectable()
 export class BasicService {
@@ -62,4 +64,10 @@ export class BasicService {
     this.dbService.updateNoteSpentByWalletAndNoteCommitment(darkPoolContext.walletAddress, darkPoolContext.chainId, noteToWithdraw.note);
     this.logger.log(`Withdraw of ${amount} ${asset.symbol} for wallet ${darkPoolContext.walletAddress} completed with tx ${withdrawContext.tx}`);
   }
+
+  async getAssets(baseDto: BaseDto): Promise<AssetDto[]> {
+    const assetDto = await this.dbService.getAssetsByWalletAndchainId(baseDto.wallet, baseDto.chainId);
+    return assetDto;
+  }
+
 }

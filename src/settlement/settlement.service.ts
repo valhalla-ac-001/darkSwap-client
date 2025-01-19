@@ -1,7 +1,7 @@
 import { DarkPoolTakerSwapMessage, generateKeyPair, Note } from '@thesingularitynetwork/darkpool-v1-proof';
 import { MakerSwapService, Order } from '@thesingularitynetwork/singularity-sdk';
-import { BooknodeService } from 'src/common/booknode.service';
-import { OrderDirection } from 'src/types';
+import { BooknodeService } from '../common/booknode.service';
+import { OrderDirection } from '../types';
 import { DarkpoolContext } from '../common/context/darkpool.context';
 import { DatabaseService } from '../common/db/database.service';
 import { ConfigLoader } from '../utils/configUtil';
@@ -9,7 +9,7 @@ import { SettlementDto } from './dto/settlement.dto';
 import { TakerConfirmDto } from './dto/takerConfirm.dto';
 import { ethers } from 'ethers';
 import { Fr } from '@aztec/bb.js';
-import { NoteService } from 'src/common/note.service';
+import { NoteService } from '../common/note.service';
 
 export class SettlementService {
 

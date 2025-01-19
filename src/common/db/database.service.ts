@@ -3,8 +3,10 @@ import config from '../../config/dbConfig';
 import { NoteDto } from '../dto/note.dto';
 import { AssetPairDto } from '../dto/assetPair.dto';
 import { OrderDto } from '../../orders/dto/order.dto';
-import { ConfigLoader } from 'src/utils/configUtil';
-import { NoteStatus } from 'src/types';
+import { AssetDto } from '../../basic/dto/asset.dto';
+import { ConfigLoader } from '../../utils/configUtil';
+import { NoteStatus } from '../../types';
+
 
 interface NoteEntity {
   id: number;
@@ -307,7 +309,7 @@ export class DatabaseService {
     const offset = (page - 1) * limit;
     const query = `SELECT * FROM ORDERS WHERE status = ? LIMIT ? OFFSET ?`;
     const stmt = this.db.prepare(query);
-    const rows = await stmt.all(status, limit, offset) as OrderDto[];
+    const rows = stmt.all(status, limit, offset) as OrderDto[];
     const orders = rows.map(row => ({
       id: row.id,
       orderId: row.orderId,
@@ -366,21 +368,27 @@ export class DatabaseService {
   public async cancelOrder(orderId: string) {
     const query = `UPDATE ORDERS SET status = 2 WHERE orderId = ?`;
     const stmt = this.db.prepare(query);
-    await stmt.run(orderId);
+    stmt.run(orderId);
   }
 
   public async updateOrderMatched(orderId: string) {
     const query = `UPDATE ORDERS SET status = 1 WHERE orderId = ?`;
     const stmt = this.db.prepare(query);
-    await stmt.run(orderId);
+    stmt.run(orderId);
   }
 
   public async updateOrderSettlementTransaction(orderId: string, txHash: string) {
     const query = `UPDATE ORDERS SET txHashSettled = ? WHERE orderId = ?`;
     const stmt = this.db.prepare(query);
-    await stmt.run(txHash, orderId);
+    stmt.run(txHash, orderId);
   }
 
+  public async getAssetsByWalletAndchainId(wallet: string, chainId: number): Promise<AssetDto[]> {
+    const query = `SELECT asset, SUM(amount) FROM NOTES WHERE wallet = ? AND chainId = ? AND status = 0  GROUP by asset`;
+    const stmt = this.db.prepare(query);
+    const rows = stmt.all(wallet, chainId) as AssetDto[];
+    return rows;
+  }
 
 }
 

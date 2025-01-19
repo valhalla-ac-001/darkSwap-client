@@ -1,5 +1,5 @@
-import { HexData, NetworkConfig } from 'src/types'
-import { ChainId } from 'src/types'
+import { HexData, NetworkConfig } from '../types'
+import { ChainId } from '../types'
 import { hardhatContracts } from './contracts/hardhat'
 import { hardhatArbContracts } from './contracts/hardhatArb'
 
