@@ -22,6 +22,40 @@ export class AccountService {
     return AccountService.instance;
   }
 
+  async getAssetsByChainId(wallet: string, chainId: number): Promise<MyAssetsDto> {
+    const notes = await this.dbService.getNotesByWalletAndChainId(wallet, chainId);
+    const assetMap = new Map<string, { amount: bigint, lockedAmount: bigint }>();
+
+    for (const note of notes) {
+      const assetKey = note.asset;
+
+      const current = assetMap.get(assetKey) || { amount: BigInt(0), lockedAmount: BigInt(0) };
+
+      if (note.status === NoteStatus.ACTIVE) {
+        current.amount += BigInt(note.amount);
+      } else if (note.status === NoteStatus.LOCKED) {
+        current.lockedAmount += BigInt(note.amount);
+      }
+
+      assetMap.set(assetKey, current);
+    }
+
+    const myAssets: MyAssetsDto = {
+      chainId: Number(chainId),
+      assets: []
+    };
+
+    for (const [asset, { amount, lockedAmount }] of assetMap.entries()) {
+      myAssets.assets.push({
+        asset,
+        amount: amount.toString(),
+        lockedAmount: lockedAmount.toString()
+      });
+    }
+
+    return myAssets;
+  }
+
   async getAssets(wallet: string): Promise<MyAssetsDto[]> {
     const notes = await this.dbService.getNotesByWallet(wallet);
 

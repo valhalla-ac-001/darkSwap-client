@@ -76,6 +76,28 @@ export class DatabaseService {
     return Number(result.lastInsertRowid);
   }
 
+  public async getNotesByWalletAndChainId(walletAddress: string, chainId: number): Promise<NoteDto[]> {
+    const query = `SELECT * FROM NOTES WHERE wallet = ? AND chainId = ? AND (status = ? OR status = ?)`;
+    const stmt = this.db.prepare(query);
+    const rows = stmt.all(walletAddress.toLowerCase(), chainId, NoteStatus.ACTIVE, NoteStatus.LOCKED) as NoteEntity[];
+
+    const notes = rows.map(row => ({
+      id: row.id,
+      chainId: row.chainId,
+      publicKey: row.publicKey,
+      wallet: row.wallet,
+      type: row.type,
+      noteCommitment: BigInt(row.noteCommitment),
+      rho: BigInt(row.rho),
+      asset: row.asset.toLowerCase(),
+      amount: BigInt(row.amount),
+      status: row.status,
+      txHashCreated: row.txHashCreated,
+    }));
+
+    return notes;
+  }
+
   public async getNotesByWallet(walletAddress: string): Promise<NoteDto[]> {
     const query = `SELECT * FROM NOTES WHERE wallet = ? AND (status = ? OR status = ?)`;
     const stmt = this.db.prepare(query);
