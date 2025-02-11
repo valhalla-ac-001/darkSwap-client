@@ -7,11 +7,12 @@ import { DarkpoolContext } from '../common/context/darkpool.context';
 import { DatabaseService } from '../common/db/database.service';
 import { AssetPairDto } from '../common/dto/assetPair.dto';
 import { NoteBatchJoinSplitService } from '../common/noteBatchJoinSplit.service';
-import { NoteStatus, OrderDirection, OrderStatus } from '../types';
+import { OrderDirection, OrderStatus } from '../types';
 import { ConfigLoader } from '../utils/configUtil';
 import { CancelOrderDto } from './dto/cancelOrder.dto';
 import { OrderDto } from './dto/order.dto';
 import { UpdatePriceDto } from './dto/updatePrice.dto';
+import { DarkpoolException } from '../exception/darkpool.exception';
 
 
 @Injectable()
@@ -47,7 +48,7 @@ export class OrderService {
 
     const noteForOrder = await this.noteBatchJoinSplitService.getNoteOfAssetAmount(darkPoolContext, outAsset, BigInt(orderDto.amountOut));
     if (!noteForOrder) {
-      throw new Error('Asset not enough');
+      throw new DarkpoolException(`Asset ${outAsset} not enough`);
     }
     const { context } = await createMakerOrderService.prepare(noteForOrder, darkPoolContext.signature);
     await createMakerOrderService.generateProof(context);
@@ -74,7 +75,7 @@ export class OrderService {
   async updateOrderPrice(updatePriceDto: UpdatePriceDto) {
     const order = await this.dbService.getOrderByOrderId(updatePriceDto.orderId);
     if (!order) {
-      throw new Error('Order not found');
+      throw new DarkpoolException('Order not found');
     }
     await this.dbService.updateOrderPrice(updatePriceDto.orderId, updatePriceDto.price, BigInt(order.amountIn), BigInt(order.partialAmountIn));
     await this.bookNodeService.updateOrderPrice(updatePriceDto);
