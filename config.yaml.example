@@ -5,23 +5,18 @@ wallets:
   - name: "hardhat2"
     address: "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
     privateKey: "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d"
-  - name: "hardhat3"
-    address: "0x2546BcD3c84621e976D8185a91A922aE77ECEc30"
-    privateKey: "0xea6c44ac03bff858b476bba40716402b03e41b8e97e276d1baec7c37d42484a0"
 
 relayers:
-  - relayerName: "Custom HardhatArb"
-    relayerAddress: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
-    hostUrl: "https://app.dev.portalgate.me:38000"
-    chainId: 31338
+  - relayerName: "Sepolia Relayer"
+    relayerAddress: "0x0A20B38894799fD27837aF3Ed8929E7b8d1dDDe7"
+    hostUrl: "https://app.dev.portalgate.me:20000"
+    chainId: 11155111
 
 chainRpcs:
-  - chainId: 31338
-    rpcUrl: "https://app.dev.portalgate.me:38545"
-  - chainId: 31337
-    rpcUrl: "https://app.dev.portalgate.me:18545"
+  - chainId: 11155111
+    rpcUrl: "YOUR-SEPOLIA-RPC-URL"
 
 dbFilePath : /data/db.sqlite3
-bookNodeSocketUrl: 
-bookNodeApiUrl:
-bookNodeApiKey:
+bookNodeSocketUrl: ws://app.dev.portalgate.me:53001
+bookNodeApiUrl: https://app.dev.portalgate.me:53000
+bookNodeApiKey: "CONTACT-US-FOR-API-KEY"
