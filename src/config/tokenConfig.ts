@@ -2,10 +2,12 @@ import { Token } from "@thesingularitynetwork/singularity-sdk";
 import { ChainId } from "../types";
 import { hardhatTokens } from "./tokens/hardhat";
 import { hardhatArbTokens } from "./tokens/hardhatArb";
+import { sepoliaTokens } from "./tokens/sepolia";
 
 export const tokenConfig: { [key: string]: Token[] } = {
     [ChainId.HARDHAT]: hardhatTokens,
     [ChainId.HARDHAT_ARBITRUM]: hardhatArbTokens,
+    [ChainId.SEPOLIA]: sepoliaTokens,
     [ChainId.MAINNET]: [
         {
             name: 'ETH',
