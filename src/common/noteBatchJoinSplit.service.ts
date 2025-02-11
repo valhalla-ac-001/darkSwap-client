@@ -35,6 +35,7 @@ export class NoteBatchJoinSplitService {
     }
     await splitservice.generateProof(splitContext);
     const tx = await splitservice.execute(splitContext);
+    await darkPoolContext.darkPool.provider.waitForTransaction(tx);
 
     this.dbService.updateNoteSpentByWalletAndNoteCommitment(darkPoolContext.walletAddress, darkPoolContext.chainId, note.note);
 
@@ -63,6 +64,7 @@ export class NoteBatchJoinSplitService {
 
     await batchJoinSplitService.generateProof(context);
     const tx = await batchJoinSplitService.execute(context);
+    await darkPoolContext.darkPool.provider.waitForTransaction(tx);
     for (const note of notesToJoin) {
       this.dbService.updateNoteSpentByWalletAndNoteCommitment(darkPoolContext.walletAddress, darkPoolContext.chainId, note.note);
     }
