@@ -367,6 +367,10 @@ export class DatabaseService {
     const query = `SELECT * FROM ORDERS WHERE orderId = ?`;
     const stmt = this.db.prepare(query);
     const row = stmt.get(orderId) as OrderDto;
+    if (!row) {
+      return null;
+    }
+
     const order = {
       id: row.id,
       orderId: row.orderId,

@@ -20,9 +20,11 @@ export class OrderController {
     type: DarkPoolSimpleResponse
   })
   async createOrder(@Body() orderDto: OrderDto): Promise<void> {
-    const order = await this.orderService.getOrderById(orderDto.orderId);
-    if (order) {
-      throw new DarkpoolError('Duplicate Order ID');
+    if (orderDto.orderId) {
+      const order = await this.orderService.getOrderById(orderDto.orderId);
+      if (order) {
+        throw new DarkpoolError('Duplicate Order ID');
+      }
     }
 
     const context = await DarkpoolContext.createDarkpoolContext(orderDto.chainId, orderDto.wallet)
