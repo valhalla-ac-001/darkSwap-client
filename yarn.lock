@@ -1288,21 +1288,6 @@
   dependencies:
     "@sinonjs/commons" "^3.0.0"
 
-"@thesingularitynetwork/darkpool-v1-proof@^0.2.34":
-  version "0.2.34"
-  resolved "https://registry.yarnpkg.com/@thesingularitynetwork/darkpool-v1-proof/-/darkpool-v1-proof-0.2.34.tgz#113b021842a682a1bdd040c5cabe3aaa1a83cbc0"
-  integrity sha512-rtmjU6dV3sQAsSC9+2V4RyNoJ2dzSdAx0zKaMa4npH/5N3764S7MV+Nib1dkOtvfSmsi3n4Qk4rdKvGXhpu1kw==
-  dependencies:
-    "@aztec/bb.js" "^0.30.0"
-    "@ethersproject/abi" "^5.7.0"
-    "@ethersproject/bignumber" "^5.7.0"
-    "@ethersproject/sha2" "^5.7.0"
-    "@noir-lang/backend_barretenberg" "^0.28.0"
-    "@noir-lang/noir_js" "^0.28.0"
-    "@noir-lang/noir_wasm" "^0.28.0"
-    "@noir-lang/types" "^0.28.0"
-    buffer "^6.0.3"
-
 "@thesingularitynetwork/darkpool-v1-proof@^0.2.36":
   version "0.2.36"
   resolved "https://registry.yarnpkg.com/@thesingularitynetwork/darkpool-v1-proof/-/darkpool-v1-proof-0.2.36.tgz#48ffb7c524169fb365257b92be29da7074547bf8"
@@ -1318,14 +1303,14 @@
     "@noir-lang/types" "^0.28.0"
     buffer "^6.0.3"
 
-"@thesingularitynetwork/singularity-sdk@^0.0.29":
-  version "0.0.29"
-  resolved "https://registry.yarnpkg.com/@thesingularitynetwork/singularity-sdk/-/singularity-sdk-0.0.29.tgz#7d92ec79d0fa1e554165140f039f543db32a7c2e"
-  integrity sha512-OYFVTwRKMl0Z9pytAHgraFDvJNi2xKOPBB2lxjz4485egVAw9e7nxbp86pgXOGEIyDned5etys8xwo+s4bjZog==
+"@thesingularitynetwork/singularity-sdk@^0.0.35":
+  version "0.0.35"
+  resolved "https://registry.yarnpkg.com/@thesingularitynetwork/singularity-sdk/-/singularity-sdk-0.0.35.tgz#ba2e4d37cb018eda82391bdc7962a308b42c06c0"
+  integrity sha512-OPadr2DQykGm/gBZgr0YsELMPDeRgsr6E8hDrFUYl5jGnw6/Cvh6qEE8Qae3zDdWtZqXXAKjOVpX5bOQPGD9lQ==
   dependencies:
     "@ethersproject/abi" "^5.0.12"
     "@ethersproject/solidity" "^5.0.9"
-    "@thesingularitynetwork/darkpool-v1-proof" "^0.2.34"
+    "@thesingularitynetwork/darkpool-v1-proof" "^0.2.36"
     "@uniswap/permit2-sdk" "^1.2.0"
     "@uniswap/v3-periphery" "^1.4.4"
     "@uniswap/v3-sdk" "^3.11.0"
