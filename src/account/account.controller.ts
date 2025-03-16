@@ -3,7 +3,7 @@ import { ApiGenericResponse } from '../common/response.interface';
 import { BaseDto } from '../common/dto/base.dto';
 import { AccountService } from './account.service';
 import { MyAssetsDto } from './dto/asset.dto';
-import { DarkpoolContext } from 'src/common/context/darkpool.context';
+import { DarkpoolContext } from '../common/context/darkpool.context';
 
 @Controller('account')
 export class AccountController {

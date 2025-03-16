@@ -3,7 +3,7 @@ import { DatabaseService } from '../common/db/database.service';
 import { NoteStatus } from '../types';
 import { MyAssetsDto } from './dto/asset.dto';
 import { isNoteCommitmentValidOnChain, isNoteSpent } from '@thesingularitynetwork/singularity-sdk';
-import { DarkpoolContext } from 'src/common/context/darkpool.context';
+import { DarkpoolContext } from '../common/context/darkpool.context';
 
 @Injectable()
 export class AccountService {
