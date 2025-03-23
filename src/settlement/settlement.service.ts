@@ -1,5 +1,5 @@
-import { DarkPoolTakerSwapMessage, generateKeyPair, Note } from '@thesingularitynetwork/darkpool-v1-proof';
-import { MakerSwapService, Order } from '@thesingularitynetwork/singularity-sdk';
+import { DarkPoolTakerSwapMessage, Note } from '@thesingularitynetwork/darkpool-v1-proof';
+import { deserializeDarkPoolTakerSwapMessage, getNoteOnChainStatusByPublicKey, MakerSwapService, NoteOnChainStatus, Order, serializeDarkPoolTakerSwapMessage } from '@thesingularitynetwork/singularity-sdk';
 import { BooknodeService } from '../common/booknode.service';
 import { OrderDirection } from '../types';
 import { DarkpoolContext } from '../common/context/darkpool.context';
@@ -7,9 +7,8 @@ import { DatabaseService } from '../common/db/database.service';
 import { ConfigLoader } from '../utils/configUtil';
 import { SettlementDto } from './dto/settlement.dto';
 import { TakerConfirmDto } from './dto/takerConfirm.dto';
-import { ethers } from 'ethers';
-import { Fr } from '@aztec/bb.js';
 import { NoteService } from '../common/note.service';
+import { DarkpoolException } from 'src/exception/darkpool.exception';
 
 export class SettlementService {
 
@@ -31,6 +30,13 @@ export class SettlementService {
       SettlementService.instance = new SettlementService();
     }
     return SettlementService.instance;
+  }
+
+  private async checkTakerNoteStatus(darkPoolContext: DarkpoolContext, takerSwapMessage: DarkPoolTakerSwapMessage) {
+    const onChainStatus = await getNoteOnChainStatusByPublicKey(darkPoolContext.relayerDarkPool, takerSwapMessage.outNote, takerSwapMessage.publicKey);
+    if (onChainStatus != NoteOnChainStatus.LOCKED) {
+      throw new DarkpoolException("Taker note is not locked");
+    }
   }
 
   async makerSwap(orderId: string) {
@@ -68,8 +74,9 @@ export class SettlementService {
       throw new Error(`No wallet found for address: ${darkPoolContext.walletAddress}`);
     }
     const makerSwapService = new MakerSwapService(darkPoolContext.relayerDarkPool);
-    const takerSwapMessage = this.deserializeSwapMessage(matchedOrderDto.takerSwapMessage);
-
+    const takerSwapMessage = deserializeDarkPoolTakerSwapMessage(matchedOrderDto.takerSwapMessage);
+    await this.checkTakerNoteStatus(darkPoolContext, takerSwapMessage);
+    
     const { context, outNotes } = await makerSwapService.prepare(order, note, takerSwapMessage, darkPoolContext.signature);
     this.noteService.addNotes(outNotes, darkPoolContext);
 
@@ -110,60 +117,6 @@ export class SettlementService {
     console.log('Post settlement for ', orderId);
   }
 
-  private deserializePublicKey(publicKeyString: string): any {
-    const buffer = Buffer.from(publicKeyString.replace(/^0x/i, ''), 'hex')
-    return {
-      x: Fr.fromBuffer(buffer.subarray(0, 32)),
-      y: Fr.fromBuffer(buffer.subarray(32, 64))
-    }
-  }
-
-  private deserializeSwapMessage(swapMessageString: string): DarkPoolTakerSwapMessage {
-    const tmpMessage = JSON.parse(swapMessageString);
-    const swapMessage = {
-      outNote: {
-        note: BigInt(tmpMessage.outNote.note),
-        rho: BigInt(tmpMessage.outNote.rho),
-        asset: tmpMessage.outNote.asset,
-        amount: BigInt(tmpMessage.outNote.amount)
-      },
-      inNote: {
-        note: BigInt(tmpMessage.inNote.note),
-        rho: BigInt(tmpMessage.inNote.rho),
-        asset: tmpMessage.inNote.asset,
-        amount: BigInt(tmpMessage.inNote.amount)
-      },
-      feeAsset: tmpMessage.feeAsset,
-      feeAmount: BigInt(tmpMessage.feeAmount),
-      publicKey: this.deserializePublicKey(tmpMessage.publicKey),
-      swapSignature: tmpMessage.swapSignature
-    }
-    return swapMessage;
-  }
-
-
-  private serializeSwapMessage(swapMessage: DarkPoolTakerSwapMessage): string {
-    const tmpMessage = {
-      outNote: {
-        note: ethers.toBeHex(swapMessage.outNote.note),
-        rho: ethers.toBeHex(swapMessage.outNote.rho),
-        asset: swapMessage.outNote.asset,
-        amount: ethers.toBeHex(swapMessage.outNote.amount)
-      },
-      inNote: {
-        note: ethers.toBeHex(swapMessage.inNote.note),
-        rho: ethers.toBeHex(swapMessage.inNote.rho),
-        asset: swapMessage.inNote.asset,
-        amount: ethers.toBeHex(swapMessage.inNote.amount)
-      },
-      feeAsset: swapMessage.feeAsset,
-      feeAmount: ethers.toBeHex(swapMessage.feeAmount),
-      publicKey: swapMessage.publicKey.toString(),
-      swapSignature: swapMessage.swapSignature
-    }
-    return JSON.stringify(tmpMessage);
-  }
-
   async takerConfirm(orderId: string) {
     const orderInfo = await this.dbService.getOrderByOrderId(orderId);
     const rawNote = await this.dbService.getNoteByCommitment(orderInfo.noteCommitment);
@@ -202,7 +155,7 @@ export class SettlementService {
       chainId: orderInfo.chainId,
       wallet: orderInfo.wallet,
       orderId: orderId,
-      swapMessage: this.serializeSwapMessage(bobSwapMessage)
+      swapMessage: serializeDarkPoolTakerSwapMessage(bobSwapMessage)
     } as TakerConfirmDto;
 
     await this.booknodeService.confirmOrder(takerConfirmDto);

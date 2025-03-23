@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { DatabaseService } from '../common/db/database.service';
 import { NoteStatus } from '../types';
 import { MyAssetsDto } from './dto/asset.dto';
-import { isNoteCommitmentValidOnChain, isNoteSpent } from '@thesingularitynetwork/singularity-sdk';
+import { getNoteOnChainStatusBySignature, NoteOnChainStatus } from '@thesingularitynetwork/singularity-sdk';
 import { DarkpoolContext } from '../common/context/darkpool.context';
 
 @Injectable()
@@ -101,46 +101,26 @@ export class AccountService {
   async syncAssets(darkpoolContext: DarkpoolContext, wallet: string, chainId: number): Promise<void> {
     const notes = await this.dbService.getNotesByWalletAndChainId(wallet, chainId);
 
-
     for (const note of notes) {
       try {
-        if (note.status === NoteStatus.ACTIVE) {
-          const isValid = await isNoteCommitmentValidOnChain(darkpoolContext.darkPool, note.noteCommitment);
-          if (!isValid) {
-            this.logger.error(`Invalid note commitment ${note.noteCommitment} on chain ${chainId}`);
+        if (note.status != NoteStatus.SPENT) {
+          const onChainStatus = await getNoteOnChainStatusBySignature(
+            darkpoolContext.darkPool,
+            {
+              note: note.noteCommitment,
+              rho: note.rho,
+              amount: note.amount,
+              asset: note.asset
+            },
+            darkpoolContext.signature);
+          if (onChainStatus == NoteOnChainStatus.ACTIVE && note.status != NoteStatus.ACTIVE) {
+            this.dbService.updateNoteActiveByWalletAndNoteCommitment(wallet, chainId, note.noteCommitment);
+          } else if (onChainStatus == NoteOnChainStatus.LOCKED && note.status != NoteStatus.LOCKED) {
+            this.dbService.updateNoteLockedByWalletAndNoteCommitment(wallet, chainId, note.noteCommitment);
+          } else if (onChainStatus == NoteOnChainStatus.SPENT && note.status != NoteStatus.SPENT) {
+            this.dbService.updateNoteSpentByWalletAndNoteCommitment(wallet, chainId, note.noteCommitment);
+          } else if (onChainStatus == NoteOnChainStatus.UNKNOWN && note.status != NoteStatus.CREATED) {
             this.dbService.updateNoteCreatedByWalletAndNoteCommitment(wallet, chainId, note.noteCommitment);
-          } else {
-            const isSpent = await isNoteSpent(
-              darkpoolContext.darkPool,
-              {
-                note: note.noteCommitment,
-                rho: note.rho,
-                amount: note.amount,
-                asset: note.asset
-              },
-              darkpoolContext.signature);
-            if (isSpent) {
-              this.dbService.updateNoteSpentByWalletAndNoteCommitment(wallet, chainId, note.noteCommitment);
-            }
-          }
-        } else if (note.status === NoteStatus.CREATED) {
-          const isValid = await isNoteCommitmentValidOnChain(darkpoolContext.darkPool, note.noteCommitment);
-          if (isValid) {
-            this.logger.error(`Invalid note commitment ${note.noteCommitment} on chain ${chainId}`);
-            const isSpent = await isNoteSpent(
-              darkpoolContext.darkPool,
-              {
-                note: note.noteCommitment,
-                rho: note.rho,
-                amount: note.amount,
-                asset: note.asset
-              },
-              darkpoolContext.signature);
-            if (isSpent) {
-              this.dbService.updateNoteSpentByWalletAndNoteCommitment(wallet, chainId, note.noteCommitment);
-            } else {
-              this.dbService.updateNoteActiveByWalletAndNoteCommitment(wallet, chainId, note.noteCommitment);
-            }
           }
         }
       } catch (error) {
