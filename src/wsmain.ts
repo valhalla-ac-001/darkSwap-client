@@ -98,40 +98,98 @@ export function startWebSocket() {
     }
 
     let ws: WebSocket;
+    let isReconnecting = false;
+    let reconnectTimeout: NodeJS.Timeout;
+    
+    let heartbeatInterval: NodeJS.Timeout;
+    let lastHeartbeatTime: number = Date.now();
+    const HEARTBEAT_INTERVAL = 30000;
+    const HEARTBEAT_TIMEOUT = HEARTBEAT_INTERVAL * 3;
+
+    const updateLastHeartbeat = () => {
+        lastHeartbeatTime = Date.now();
+        console.log('Heartbeat updated to:', new Date(lastHeartbeatTime).toUTCString());
+    };
+
+    const startHeartbeatCheck = () => {
+        heartbeatInterval = setInterval(() => {
+            const currentTime = Date.now();
+            if (currentTime - lastHeartbeatTime >= HEARTBEAT_TIMEOUT) {
+                console.log('Heartbeat timeout, reconnecting...');
+                cleanup();
+                reconnect();
+            }
+        }, HEARTBEAT_INTERVAL);
+    };
+
+    const cleanup = () => {
+        if (ws) {
+            ws.removeAllListeners();
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.close();
+            }
+        }
+        clearInterval(heartbeatInterval);
+    };
 
     const connect = () => {
+        cleanup();
+        
         ws = new WebSocket(booknodeUrl);
 
         ws.on('open', () => {
             console.log('Connected to BookNode server');
+            isReconnecting = false;
             const authMessage = JSON.stringify({
                 type: 'auth',
                 token: ConfigLoader.getInstance().getConfig().bookNodeApiKey
             });
 
             ws.send(authMessage);
+            updateLastHeartbeat();
+            startHeartbeatCheck();
+        });
+
+        ws.on('ping', () => {
+            ws.pong();
+            updateLastHeartbeat();
         });
 
         ws.on('error', (error) => {
             console.error('WebSocket error:', error);
+            clearInterval(heartbeatInterval);
+            isReconnecting = false;
             reconnect();
         });
 
         ws.on('close', () => {
             console.log('Disconnected from BookNode server');
+            clearInterval(heartbeatInterval);
             reconnect();
         });
 
         ws.on('message', (data) => {
             console.log('Received message:', data.toString());
+            updateLastHeartbeat();
             enqueueMessage(data.toString());
         });
     };
 
     const reconnect = () => {
+        if (isReconnecting) {
+            clearTimeout(reconnectTimeout);
+        }
+        isReconnecting = true;
         console.log('Attempting to reconnect...');
-        setTimeout(connect, 10000);
+        reconnectTimeout = setTimeout(() => {
+            connect();
+        }, 10000);
     };
 
     connect();
+
+    return () => {
+        clearTimeout(reconnectTimeout);
+        cleanup();
+    };
 }
