@@ -151,7 +151,6 @@ export function startWebSocket() {
         });
 
         ws.on('ping', () => {
-            ws.pong();
             updateLastHeartbeat();
         });
 
