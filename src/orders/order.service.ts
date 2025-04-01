@@ -124,6 +124,8 @@ export class OrderService {
       if (receipt.status !== 1) {
         throw new DarkpoolException("Order cancellation failed");
       }
+
+      await this.dbService.updateNoteActiveByWalletAndNoteCommitment(darkPoolContext.walletAddress, darkPoolContext.chainId, note.noteCommitment);
     }
 
     const cancelOrderDto = {
