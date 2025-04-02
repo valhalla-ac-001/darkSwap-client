@@ -13,7 +13,7 @@ import { CancelOrderDto } from './dto/cancelOrder.dto';
 import { OrderDto } from './dto/order.dto';
 import { UpdatePriceDto } from './dto/updatePrice.dto';
 import { DarkpoolException } from '../exception/darkpool.exception';
-import { getConfirmations } from 'src/config/networkConfig';
+import { getConfirmations } from '../config/networkConfig';
 
 
 @Injectable()

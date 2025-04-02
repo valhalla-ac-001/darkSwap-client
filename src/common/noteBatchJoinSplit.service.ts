@@ -2,7 +2,7 @@ import { Note } from '@thesingularitynetwork/darkpool-v1-proof';
 import { BatchJoinSplitService, SplitService } from '@thesingularitynetwork/singularity-sdk';
 import { DarkpoolContext } from './context/darkpool.context';
 import { DatabaseService } from './db/database.service';
-import { getConfirmations } from 'src/config/networkConfig';
+import { getConfirmations } from '../config/networkConfig';
 
 export class NoteBatchJoinSplitService {
   private static instance: NoteBatchJoinSplitService;

@@ -3,7 +3,7 @@ import { DepositService, Token, WithdrawService, isAddressCompliant } from '@the
 import { DarkpoolContext } from '../common/context/darkpool.context';
 import { DatabaseService } from '../common/db/database.service';
 import { NoteBatchJoinSplitService } from '../common/noteBatchJoinSplit.service';
-import { getConfirmations } from 'src/config/networkConfig';
+import { getConfirmations } from '../config/networkConfig';
 
 @Injectable()
 export class BasicService {

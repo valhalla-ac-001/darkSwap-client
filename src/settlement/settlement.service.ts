@@ -9,7 +9,7 @@ import { SettlementDto } from './dto/settlement.dto';
 import { TakerConfirmDto } from './dto/takerConfirm.dto';
 import { NoteService } from '../common/note.service';
 import { DarkpoolException } from '../exception/darkpool.exception';
-import { getConfirmations } from 'src/config/networkConfig';
+import { getConfirmations } from '../config/networkConfig';
 
 export class SettlementService {
 
