@@ -82,9 +82,11 @@ export class OrderService {
     const order = await this.dbService.getOrderByOrderId(updatePriceDto.orderId);
     if (!order) {
       throw new DarkpoolException('Order not found');
+    } else if (order.status != OrderStatus.OPEN) {
+      throw new DarkpoolException('Order is not in open status');
     }
-    await this.dbService.updateOrderPrice(updatePriceDto.orderId, updatePriceDto.price, BigInt(order.amountIn), BigInt(order.partialAmountIn));
     await this.bookNodeService.updateOrderPrice(updatePriceDto);
+    await this.dbService.updateOrderPrice(updatePriceDto.orderId, updatePriceDto.price, BigInt(updatePriceDto.amountIn), BigInt(updatePriceDto.partialAmountIn));
     return true;
   }
 
