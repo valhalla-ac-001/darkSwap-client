@@ -1,7 +1,7 @@
 import { DarkPoolTakerSwapMessage, Note } from '@thesingularitynetwork/darkpool-v1-proof';
 import { deserializeDarkPoolTakerSwapMessage, getNoteOnChainStatusByPublicKey, MakerSwapService, NoteOnChainStatus, Order, serializeDarkPoolTakerSwapMessage } from '@thesingularitynetwork/singularity-sdk';
 import { BooknodeService } from '../common/booknode.service';
-import { OrderDirection } from '../types';
+import { OrderDirection, OrderStatus } from '../types';
 import { DarkpoolContext } from '../common/context/darkpool.context';
 import { DatabaseService } from '../common/db/database.service';
 import { ConfigLoader } from '../utils/configUtil';
@@ -10,6 +10,7 @@ import { TakerConfirmDto } from './dto/takerConfirm.dto';
 import { NoteService } from '../common/note.service';
 import { DarkpoolException } from '../exception/darkpool.exception';
 import { getConfirmations } from '../config/networkConfig';
+import { OrderEventService } from 'src/orders/orderEvent.service';
 
 export class SettlementService {
 
@@ -18,12 +19,13 @@ export class SettlementService {
   private dbService: DatabaseService;
   private booknodeService: BooknodeService;
   private noteService: NoteService;
-
+  private orderEventService: OrderEventService;
   private constructor() {
     this.configLoader = ConfigLoader.getInstance();
     this.dbService = DatabaseService.getInstance();
     this.booknodeService = BooknodeService.getInstance();
     this.noteService = NoteService.getInstance();
+    this.orderEventService = OrderEventService.getInstance();
   }
 
   public static getInstance(): SettlementService {
@@ -42,6 +44,8 @@ export class SettlementService {
 
   async makerSwap(orderId: string) {
     const orderInfo = await this.dbService.getOrderByOrderId(orderId);
+    await this.orderEventService.logOrderStatusChange(orderId, orderInfo.wallet, orderInfo.chainId, OrderStatus.MATCHED);
+
     const rawNote = await this.dbService.getNoteByCommitment(orderInfo.noteCommitment);
     const note = {
       note: rawNote.noteCommitment,
@@ -98,6 +102,7 @@ export class SettlementService {
 
     await this.booknodeService.settleOrder(settlementDto);
     console.log('Order settled for ', orderId);
+    await this.orderEventService.logOrderStatusChange(orderId, orderInfo.wallet, orderInfo.chainId, OrderStatus.SETTLED);
   }
 
   async takerPostSettlement(orderId: string, txHash: string) {
@@ -116,6 +121,7 @@ export class SettlementService {
       this.dbService.updateNoteTransactionByWalletAndNoteCommitment(orderInfo.wallet, orderInfo.chainId, incomingNote.noteCommitment, txHash);
     }
     console.log('Post settlement for ', orderId);
+    await this.orderEventService.logOrderStatusChange(orderId, orderInfo.wallet, orderInfo.chainId, OrderStatus.SETTLED);
   }
 
   async takerConfirm(orderId: string) {
@@ -161,5 +167,6 @@ export class SettlementService {
 
     await this.booknodeService.confirmOrder(takerConfirmDto);
     console.log('Order confirmed for ', orderId);
+    await this.orderEventService.logOrderStatusChange(orderId, orderInfo.wallet, orderInfo.chainId, OrderStatus.MATCHED);
   }
 }

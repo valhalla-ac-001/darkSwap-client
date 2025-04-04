@@ -1,8 +1,8 @@
 import { ConfigLoader } from "../utils/configUtil";
 
-export default{
+export default {
     dbFile: ConfigLoader.getInstance().getConfig().dbFilePath,
-    tables:[
+    tables: [
         //status: 0: normal, 1: used, 2: locked, 3: created
         //type: 0: note, 1: partial note
         `CREATE TABLE IF NOT EXISTS NOTES (
@@ -19,7 +19,7 @@ export default{
             txHashCreated TEXT,
             createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP);`,
-            
+
         `CREATE TABLE IF NOT EXISTS ASSET_PAIRS (
             id TEXT NOT NULL,
             chainId INTERGER NOT NULL,
@@ -49,7 +49,7 @@ export default{
         // expire_taker: 10
         // both: 11
         //status: 0: open, 1: matched, 2: cancelled
-    
+
         `CREATE TABLE IF NOT EXISTS ORDERS (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             orderId TEXT NOT NULL,
@@ -73,5 +73,15 @@ export default{
             txHashSettled TEXT,
             createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP);`,
+
+        `CREATE TABLE IF NOT EXISTS ORDER_EVENTS (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            chainId INTEGER NOT NULL,
+            wallet TEXT NOT NULL,
+            orderId TEXT NOT NULL,
+            status INTERGER NOT NULL,
+            createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(chainId,wallet,orderId,status)
+            );`,
     ]
 }
