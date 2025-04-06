@@ -440,6 +440,7 @@ export class DatabaseService {
     const stmt = this.db.prepare(`
       INSERT INTO ORDER_EVENTS (orderId, wallet, chainId, status)
       VALUES (?, ?, ?, ?)
+      ON CONFLICT DO NOTHING
     `);
     
     const result = stmt.run(
