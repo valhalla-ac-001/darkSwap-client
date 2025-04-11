@@ -131,7 +131,7 @@ export const networkConfig: { [chainId: number]: NetworkConfig } = {
     sablierDynamicAssetManager: '0x54Ea206f4DF7676A41Df9e44778B5Af4fB0B7a58',
     sablierLinearAssetManager: '0x6667889310308C9537B53ea64B01036D73B299Fb',
     oTCSwapAssetManager: '0xD3070435b0cF2D8D31Ea5A45cF32805e540D9407',
-    batchJoinSplitAssetManager: '0x1CfA61D3aF6664967B006796137bA97bde41F4cc',
+    batchJoinSplitAssetManager: '0x31816E27809fdc3cF73539d761133a301beEb9B0',
     darkPoolSwapAssetManager: '0x802ae625C2bdac1873B8bbb709679CC401F57abc',
     drakpoolSubgraphUrl: '',
     explorerUrl: {
