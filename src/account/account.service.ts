@@ -98,6 +98,38 @@ export class AccountService {
     return myAssetsArray;
   }
 
+  async syncOneAsset(darkpoolContext: DarkpoolContext, wallet: string, chainId: number, asset: string): Promise<void> {
+
+    const notes = await this.dbService.getNotesByWalletAndChainIdAndAsset(wallet, chainId, asset);
+
+    for (const note of notes) {
+      try {
+        if (note.status != NoteStatus.SPENT) {
+          const onChainStatus = await getNoteOnChainStatusBySignature(
+            darkpoolContext.darkPool,
+            {
+              note: note.noteCommitment,
+              rho: note.rho,
+              amount: note.amount,
+              asset: note.asset
+            },
+            darkpoolContext.signature);
+          if (onChainStatus == NoteOnChainStatus.ACTIVE && note.status != NoteStatus.ACTIVE) {
+            this.dbService.updateNoteActiveByWalletAndNoteCommitment(wallet, chainId, note.noteCommitment);
+          } else if (onChainStatus == NoteOnChainStatus.LOCKED && note.status != NoteStatus.LOCKED) {
+            this.dbService.updateNoteLockedByWalletAndNoteCommitment(wallet, chainId, note.noteCommitment);
+          } else if (onChainStatus == NoteOnChainStatus.SPENT && note.status != NoteStatus.SPENT) {
+            this.dbService.updateNoteSpentByWalletAndNoteCommitment(wallet, chainId, note.noteCommitment);
+          } else if (onChainStatus == NoteOnChainStatus.UNKNOWN && note.status != NoteStatus.CREATED) {
+            this.dbService.updateNoteCreatedByWalletAndNoteCommitment(wallet, chainId, note.noteCommitment);
+          }
+        }
+      } catch (error) {
+        this.logger.error(`Error syncing asset ${note.asset} on chain ${chainId}: ${error.message}`);
+      }
+    }
+  }
+
   async syncAssets(darkpoolContext: DarkpoolContext, wallet: string, chainId: number): Promise<void> {
     const notes = await this.dbService.getNotesByWalletAndChainId(wallet, chainId);
 

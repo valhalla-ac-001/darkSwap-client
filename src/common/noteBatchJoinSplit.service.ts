@@ -1,5 +1,5 @@
 import { Note } from '@thesingularitynetwork/darkpool-v1-proof';
-import { BatchJoinSplitService, SplitService } from '@thesingularitynetwork/singularity-sdk';
+import { BatchJoinSplitService, getNoteOnChainStatusBySignature, NoteOnChainStatus, SplitService } from '@thesingularitynetwork/singularity-sdk';
 import { DarkpoolContext } from './context/darkpool.context';
 import { DatabaseService } from './db/database.service';
 import { getConfirmations } from '../config/networkConfig';
@@ -47,6 +47,19 @@ export class NoteBatchJoinSplitService {
   }
 
   private async doBatchJoinSplit(notesToJoin: Note[], darkPoolContext: DarkpoolContext, amount: bigint): Promise<Note> | null {
+    //check whether notes are all valid
+    for (const note of notesToJoin) {
+      const noteOnChainStatus = await getNoteOnChainStatusBySignature(
+        darkPoolContext.relayerDarkPool,
+        note,
+        darkPoolContext.signature
+      );
+      if (noteOnChainStatus != NoteOnChainStatus.ACTIVE) {
+        console.error(`Note ${note.note} is not active`);
+        throw new Error(`Failed to combine notes, one of the notes is not active!`);
+      }
+    }
+
     const batchJoinSplitService = new BatchJoinSplitService(darkPoolContext.relayerDarkPool);
     const { context, outNotes } = await batchJoinSplitService.prepare(notesToJoin, amount, darkPoolContext.signature);
 

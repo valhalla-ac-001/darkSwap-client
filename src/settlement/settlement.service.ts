@@ -1,5 +1,5 @@
 import { DarkPoolTakerSwapMessage, Note } from '@thesingularitynetwork/darkpool-v1-proof';
-import { deserializeDarkPoolTakerSwapMessage, getNoteOnChainStatusByPublicKey, MakerSwapService, NoteOnChainStatus, Order, serializeDarkPoolTakerSwapMessage } from '@thesingularitynetwork/singularity-sdk';
+import { deserializeDarkPoolTakerSwapMessage, getNoteOnChainStatusByPublicKey, getNoteOnChainStatusBySignature, MakerSwapService, NoteOnChainStatus, Order, serializeDarkPoolTakerSwapMessage } from '@thesingularitynetwork/singularity-sdk';
 import { BooknodeService } from '../common/booknode.service';
 import { OrderDirection, OrderStatus } from '../types';
 import { DarkpoolContext } from '../common/context/darkpool.context';
@@ -53,9 +53,20 @@ export class SettlementService {
       asset: rawNote.asset,
       amount: rawNote.amount
     } as Note;
+    
     const assetPair = await this.dbService.getAssetPairById(orderInfo.assetPairId, orderInfo.chainId);
     const takerAsset = orderInfo.orderDirection === OrderDirection.BUY ? assetPair.quoteAddress : assetPair.baseAddress;
     const darkPoolContext = await DarkpoolContext.createDarkpoolContext(orderInfo.chainId, orderInfo.wallet);
+
+    //check note status
+    const noteOnChainStatus = await getNoteOnChainStatusBySignature(
+      darkPoolContext.relayerDarkPool,
+      note,
+      darkPoolContext.signature
+    );
+    if (noteOnChainStatus != NoteOnChainStatus.LOCKED) {
+      throw new DarkpoolException(`Note ${note.note} is not locked`);
+    }
 
     const settlementDto = new SettlementDto();
     settlementDto.orderId = orderId;
