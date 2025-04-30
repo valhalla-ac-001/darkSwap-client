@@ -440,6 +440,12 @@ export class DatabaseService {
     stmt.run(OrderStatus.CANCELLED, orderId);
   }
 
+  public updateOrderIncomingNoteCommitment(orderId: string, incomingNoteCommitment: bigint) {
+    const query = `UPDATE ORDERS SET incomingNoteCommitment = ? WHERE orderId = ?`;
+    const stmt = this.db.prepare(query);
+    stmt.run(incomingNoteCommitment.toString(), orderId);
+  }
+
   public updateOrderConfirmedAndIncomingNoteCommitment(orderId: string, incomingNoteCommitment: bigint) {
     const query = `UPDATE ORDERS SET status = ?, incomingNoteCommitment = ? WHERE orderId = ?`;
     const stmt = this.db.prepare(query);
@@ -458,10 +464,11 @@ export class DatabaseService {
     await stmt.run(OrderStatus.MATCHED, orderId, OrderStatus.OPEN);
   }
 
+
   public async updateOrderSettlementTransaction(orderId: string, txHash: string) {
-    const query = `UPDATE ORDERS SET txHashSettled = ? WHERE orderId = ?`;
+    const query = `UPDATE ORDERS SET txHashSettled = ?, status = ? WHERE orderId = ?`;
     const stmt = this.db.prepare(query);
-    stmt.run(txHash, orderId);
+    stmt.run(txHash, OrderStatus.SETTLED, orderId);
   }
 
   public async addOrderEvent(chainId: number, orderId: string, wallet: string, status: number): Promise<number> {

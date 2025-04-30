@@ -133,7 +133,7 @@ export const networkConfig: { [chainId: number]: NetworkConfig } = {
     oTCSwapAssetManager: '0xD3070435b0cF2D8D31Ea5A45cF32805e540D9407',
     batchJoinSplitAssetManager: '0x31816E27809fdc3cF73539d761133a301beEb9B0',
     darkPoolSwapAssetManager: '0x802ae625C2bdac1873B8bbb709679CC401F57abc',
-    drakpoolSubgraphUrl: '',
+    drakpoolSubgraphUrl: 'https://subgraph.satsuma-prod.com/1c6a44a9ed6e/pgs-team--611591/singularity-sepolia-subgraph/api',
     explorerUrl: {
       tx: 'https://sepolia.etherscan.io/tx/',
       address: 'https://sepolia.etherscan.io/address/',

@@ -1,31 +1,33 @@
-import { DarkPoolTakerSwapMessage, Note } from '@thesingularitynetwork/darkpool-v1-proof';
-import { deserializeDarkPoolTakerSwapMessage, getNoteOnChainStatusByPublicKey, getNoteOnChainStatusBySignature, MakerSwapService, NoteOnChainStatus, Order, serializeDarkPoolTakerSwapMessage } from '@thesingularitynetwork/singularity-sdk';
+import { calcNullifier, DarkPoolTakerSwapMessage, getNullifier, Note } from '@thesingularitynetwork/darkpool-v1-proof';
+import { deserializeDarkPoolTakerSwapMessage, getNoteOnChainStatusByPublicKey, getNoteOnChainStatusBySignature, hexlify32, MakerSwapService, NoteOnChainStatus, Order, serializeDarkPoolTakerSwapMessage } from '@thesingularitynetwork/singularity-sdk';
 import { BooknodeService } from '../common/booknode.service';
-import { OrderDirection, OrderStatus } from '../types';
 import { DarkpoolContext } from '../common/context/darkpool.context';
 import { DatabaseService } from '../common/db/database.service';
-import { ConfigLoader } from '../utils/configUtil';
-import { SettlementDto } from './dto/settlement.dto';
-import { TakerConfirmDto } from './dto/takerConfirm.dto';
+import { NoteDto } from '../common/dto/note.dto';
 import { NoteService } from '../common/note.service';
-import { DarkpoolException } from '../exception/darkpool.exception';
+import { SubgraphService } from '../common/subgraph.service';
 import { getConfirmations } from '../config/networkConfig';
+import { DarkpoolException } from '../exception/darkpool.exception';
+import { OrderDto } from '../orders/dto/order.dto';
 import { OrderEventService } from '../orders/orderEvent.service';
+import { OrderDirection, OrderStatus } from '../types';
+import { ConfigLoader } from '../utils/configUtil';
+import { TakerConfirmDto } from './dto/takerConfirm.dto';
 
 export class SettlementService {
 
   private static instance: SettlementService;
-  private configLoader: ConfigLoader;
   private dbService: DatabaseService;
   private booknodeService: BooknodeService;
   private noteService: NoteService;
   private orderEventService: OrderEventService;
+  private subgraphService: SubgraphService;
   private constructor() {
-    this.configLoader = ConfigLoader.getInstance();
     this.dbService = DatabaseService.getInstance();
     this.booknodeService = BooknodeService.getInstance();
     this.noteService = NoteService.getInstance();
     this.orderEventService = OrderEventService.getInstance();
+    this.subgraphService = SubgraphService.getInstance();
   }
 
   public static getInstance(): SettlementService {
@@ -42,38 +44,55 @@ export class SettlementService {
     }
   }
 
+  private noteDtoToNote(noteDto: NoteDto): Note {
+    return {
+      note: noteDto.noteCommitment,
+      rho: noteDto.rho,
+      asset: noteDto.asset,
+      amount: noteDto.amount
+    } as Note;
+  }
+
   async makerSwap(orderId: string) {
     const orderInfo = await this.dbService.getOrderByOrderId(orderId);
     await this.orderEventService.logOrderStatusChange(orderId, orderInfo.wallet, orderInfo.chainId, OrderStatus.MATCHED);
 
-    const rawNote = await this.dbService.getNoteByCommitment(orderInfo.noteCommitment);
-    const note = {
-      note: rawNote.noteCommitment,
-      rho: rawNote.rho,
-      asset: rawNote.asset,
-      amount: rawNote.amount
-    } as Note;
+    const matchedOrderDto = await this.booknodeService.getMatchedOrderDetails(orderInfo);
+    const takerSwapMessage = deserializeDarkPoolTakerSwapMessage(matchedOrderDto.takerSwapMessage);
 
-    const assetPair = await this.dbService.getAssetPairById(orderInfo.assetPairId, orderInfo.chainId);
-    const takerAsset = orderInfo.orderDirection === OrderDirection.BUY ? assetPair.quoteAddress : assetPair.baseAddress;
+
+
     const darkPoolContext = await DarkpoolContext.createDarkpoolContext(orderInfo.chainId, orderInfo.wallet);
-
     //check note status
-    const noteOnChainStatus = await getNoteOnChainStatusBySignature(
+
+    const rawNote = await this.dbService.getNoteByCommitment(orderInfo.noteCommitment);
+    const note = this.noteDtoToNote(rawNote);
+    const makerNoteOnChainStatus = await getNoteOnChainStatusBySignature(
       darkPoolContext.relayerDarkPool,
       note,
       darkPoolContext.signature
     );
-    if (noteOnChainStatus != NoteOnChainStatus.LOCKED) {
-      throw new DarkpoolException(`Note ${note.note} is not locked`);
+    if (makerNoteOnChainStatus != NoteOnChainStatus.LOCKED) {
+      const makerNullifier = await getNullifier({
+        rho: note.rho,
+        signedMessage: darkPoolContext.signature
+      });
+      const takerNullifier = hexlify32(calcNullifier(takerSwapMessage.outNote.rho, takerSwapMessage.publicKey));
+      const subgraphData = await this.subgraphService.getSwapTxByNullifiers(orderInfo.chainId, makerNullifier, takerNullifier);
+      if (subgraphData) {
+        console.log('Order settle recovered for ', orderId);
+        const incomingNoteDto = await this.dbService.getNoteByCommitment(BigInt(subgraphData.makerInNote).toString());
+        const incomingNote = this.noteDtoToNote(incomingNoteDto);
+        await this.updateMakerOrderData(orderInfo, note, incomingNote, darkPoolContext, subgraphData.txHash);
+        return;
+      }
+      throw new DarkpoolException(`Note ${note.note} is not locked and no settlement transaction found`);
     }
 
-    const settlementDto = new SettlementDto();
-    settlementDto.orderId = orderId;
-    settlementDto.wallet = orderInfo.wallet;
-    settlementDto.chainId = orderInfo.chainId;
+    await this.checkTakerNoteStatus(darkPoolContext, takerSwapMessage);
 
-    const matchedOrderDto = await this.booknodeService.getMatchedOrderDetails(settlementDto);
+    const assetPair = await this.dbService.getAssetPairById(orderInfo.assetPairId, orderInfo.chainId);
+    const takerAsset = orderInfo.orderDirection === OrderDirection.BUY ? assetPair.quoteAddress : assetPair.baseAddress;
 
     const order = {
       orderId: orderId,
@@ -82,38 +101,30 @@ export class SettlementService {
       takerAsset: takerAsset,
       takerAmount: matchedOrderDto.takerMatchedAmount
     } as Order;
-
-    const wallet = this.configLoader.getWallets()
-      .find(w => w.address.toLowerCase() === darkPoolContext.walletAddress.toLowerCase());
-
-    if (!wallet) {
-      throw new Error(`No wallet found for address: ${darkPoolContext.walletAddress}`);
-    }
     const makerSwapService = new MakerSwapService(darkPoolContext.relayerDarkPool);
-    const takerSwapMessage = deserializeDarkPoolTakerSwapMessage(matchedOrderDto.takerSwapMessage);
-    await this.checkTakerNoteStatus(darkPoolContext, takerSwapMessage);
-
     const { context, outNotes } = await makerSwapService.prepare(order, note, takerSwapMessage, darkPoolContext.signature);
     this.noteService.addNotes(outNotes, darkPoolContext);
+    this.dbService.updateOrderIncomingNoteCommitment(orderId, outNotes[0].note);
 
     await makerSwapService.generateProof(context);
     const tx = await makerSwapService.execute(context);
     const receipt = await darkPoolContext.relayerDarkPool.provider.waitForTransaction(tx, getConfirmations(darkPoolContext.chainId));
     if (receipt.status !== 1) {
-      throw new Error("Maker swap failed");
+      throw new DarkpoolException("Maker swap failed with tx hash " + tx);
     }
 
-    this.noteService.setNoteUsed(note, darkPoolContext);
-    this.noteService.setNotesActive(outNotes, darkPoolContext, tx);
+    await this.updateMakerOrderData(orderInfo, note, outNotes[0], darkPoolContext, tx);
+  }
 
-    await this.dbService.updateOrderMatched(orderId);
-    await this.dbService.updateOrderSettlementTransaction(orderId, tx);
+  private async updateMakerOrderData(order: OrderDto, makerOutNote: Note, makerInNote: Note, darkPoolContext: DarkpoolContext, txHash: string) {
+    this.noteService.setNoteUsed(makerOutNote, darkPoolContext);
+    this.noteService.setNotesActive([makerInNote], darkPoolContext, txHash);
+
+    await this.dbService.updateOrderSettlementTransaction(order.orderId, txHash);
     //send settle info to booknode
-    settlementDto.txHashSettled = tx;
-
-    await this.booknodeService.settleOrder(settlementDto);
-    console.log('Order settled for ', orderId);
-    await this.orderEventService.logOrderStatusChange(orderId, orderInfo.wallet, orderInfo.chainId, OrderStatus.SETTLED);
+    await this.booknodeService.settleOrder(order, txHash);
+    console.log('Order settled for ', order.orderId);
+    await this.orderEventService.logOrderStatusChange(order.orderId, order.wallet, order.chainId, OrderStatus.SETTLED);
   }
 
   async takerPostSettlement(orderId: string, txHash: string) {
@@ -121,12 +132,7 @@ export class SettlementService {
     const orderInfo = await this.dbService.getOrderByOrderId(orderId);
     const outgoingNote = await this.dbService.getNoteByCommitment(orderInfo.noteCommitment);
     const darkPoolContext = await DarkpoolContext.createDarkpoolContext(orderInfo.chainId, orderInfo.wallet);
-    this.noteService.setNoteUsed({
-      note: outgoingNote.noteCommitment,
-      rho: outgoingNote.rho,
-      asset: outgoingNote.asset,
-      amount: outgoingNote.amount
-    } as Note, darkPoolContext);
+    this.noteService.setNoteUsed(this.noteDtoToNote(outgoingNote), darkPoolContext);
     if (orderInfo.incomingNoteCommitment) {
       const incomingNote = await this.dbService.getNoteByCommitment(orderInfo.incomingNoteCommitment);
       this.dbService.updateNoteTransactionByWalletAndNoteCommitment(orderInfo.wallet, orderInfo.chainId, incomingNote.noteCommitment, txHash);
@@ -159,12 +165,7 @@ export class SettlementService {
     const makerAsset = orderInfo.orderDirection === OrderDirection.BUY ? assetPair.baseAddress : assetPair.quoteAddress;
     const darkPoolContext = await DarkpoolContext.createDarkpoolContext(orderInfo.chainId, orderInfo.wallet);
 
-    const settlementDto = new SettlementDto();
-    settlementDto.orderId = orderId;
-    settlementDto.wallet = orderInfo.wallet;
-    settlementDto.chainId = orderInfo.chainId;
-
-    const matchedOrderDto = await this.booknodeService.getMatchedOrderDetails(settlementDto);
+    const matchedOrderDto = await this.booknodeService.getMatchedOrderDetails(orderInfo);
 
     const order = {
       orderId: orderId,

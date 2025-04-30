@@ -99,7 +99,11 @@ export class BooknodeService {
         }
     }
 
-    public async getMatchedOrderDetails(settlementDto: SettlementDto): Promise<MatchedOrderDto> {
+    public async getMatchedOrderDetails(order: OrderDto): Promise<MatchedOrderDto> {
+        const settlementDto = new SettlementDto();
+        settlementDto.orderId = order.orderId;
+        settlementDto.wallet = order.wallet;
+        settlementDto.chainId = order.chainId;
         const result = await this.sendRequest(settlementDto, '/api/orders/matchdetails');
         const bookNodeMathedOrderDetail = result.data.data as BookNodeMatchedOrder;
         return {
@@ -151,7 +155,12 @@ export class BooknodeService {
         return result.data;
     }
 
-    public async settleOrder(settlementDto: SettlementDto): Promise<any> {
+    public async settleOrder(order: OrderDto, txHash: string): Promise<any> {
+        const settlementDto = new SettlementDto();
+        settlementDto.orderId = order.orderId;
+        settlementDto.wallet = order.wallet;
+        settlementDto.chainId = order.chainId;
+        settlementDto.txHashSettled = txHash;
         const result = await this.sendRequest(settlementDto, '/api/orders/settle');
         return result.data;
     }
