@@ -11,9 +11,8 @@ import { DarkpoolException } from '../exception/darkpool.exception';
 import { OrderDto } from '../orders/dto/order.dto';
 import { OrderEventService } from '../orders/orderEvent.service';
 import { OrderDirection, OrderStatus } from '../types';
-import { ConfigLoader } from '../utils/configUtil';
 import { TakerConfirmDto } from './dto/takerConfirm.dto';
-
+import { WalletMutexService } from '../common/mutex/walletMutex.service';
 export class SettlementService {
 
   private static instance: SettlementService;
@@ -22,12 +21,14 @@ export class SettlementService {
   private noteService: NoteService;
   private orderEventService: OrderEventService;
   private subgraphService: SubgraphService;
+  private walletMutexService: WalletMutexService;
   private constructor() {
     this.dbService = DatabaseService.getInstance();
     this.booknodeService = BooknodeService.getInstance();
     this.noteService = NoteService.getInstance();
     this.orderEventService = OrderEventService.getInstance();
     this.subgraphService = SubgraphService.getInstance();
+    this.walletMutexService = WalletMutexService.getInstance();
   }
 
   public static getInstance(): SettlementService {
@@ -107,7 +108,10 @@ export class SettlementService {
     this.dbService.updateOrderIncomingNoteCommitment(orderId, outNotes[0].note);
 
     await makerSwapService.generateProof(context);
-    const tx = await makerSwapService.execute(context);
+    const mutex = this.walletMutexService.getMutex(darkPoolContext.walletAddress.toLowerCase());
+    const tx = await mutex.runExclusive(async () => {
+      return await makerSwapService.execute(context);
+    });
     const receipt = await darkPoolContext.relayerDarkPool.provider.waitForTransaction(tx, getConfirmations(darkPoolContext.chainId));
     if (receipt.status !== 1) {
       throw new DarkpoolException("Maker swap failed with tx hash " + tx);

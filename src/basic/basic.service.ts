@@ -4,6 +4,7 @@ import { DarkpoolContext } from '../common/context/darkpool.context';
 import { DatabaseService } from '../common/db/database.service';
 import { NoteBatchJoinSplitService } from '../common/noteBatchJoinSplit.service';
 import { getConfirmations } from '../config/networkConfig';
+import { WalletMutexService } from '../common/mutex/walletMutex.service';
 
 @Injectable()
 export class BasicService {
@@ -13,10 +14,11 @@ export class BasicService {
   private static instance: BasicService;
   private dbService: DatabaseService;
   private noteBatchJoinSplitService: NoteBatchJoinSplitService;
-
+  private walletMutexService: WalletMutexService;
   public constructor() {
     this.dbService = DatabaseService.getInstance();
     this.noteBatchJoinSplitService = NoteBatchJoinSplitService.getInstance();
+    this.walletMutexService = WalletMutexService.getInstance();
   }
 
   // Method to deposit funds
@@ -36,7 +38,10 @@ export class BasicService {
       outNotes[0].amount,
       '')
     await depositService.generateProof(context);
-    const tx = await depositService.execute(context);
+    const mutex = this.walletMutexService.getMutex(darkPoolContext.walletAddress.toLowerCase());
+    const tx = await mutex.runExclusive(async () => {
+      return await depositService.execute(context);
+    });
     const receipt = await darkPoolContext.darkPool.provider.waitForTransaction(tx, getConfirmations(darkPoolContext.chainId));
     if (receipt.status !== 1) {
       throw new Error("Deposit failed");

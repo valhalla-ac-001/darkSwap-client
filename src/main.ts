@@ -8,7 +8,7 @@ import { ResponseInterceptor } from './common/response.interceptor';
 import { ConfigLoader } from './utils/configUtil';
 
 import { startWebSocket } from './wsmain';
-
+import { WalletMutexService } from './common/mutex/walletMutex.service';
 
 async function bootstrap() {
   ConfigLoader.getInstance();
@@ -29,6 +29,8 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   await assetPairService.syncAssetPairs();
+  const wallets = ConfigLoader.getInstance().getConfig().wallets.map((wallet) => wallet.address.toLowerCase());
+  WalletMutexService.getInstance().init(wallets);
 
   const port = process.env.PORT || 3002;
   await app.listen(port);
