@@ -4,6 +4,7 @@ import { DarkpoolContext } from './context/darkpool.context';
 import { DatabaseService } from './db/database.service';
 import { getConfirmations } from '../config/networkConfig';
 import { WalletMutexService } from './mutex/walletMutex.service';
+import { DarkpoolException } from '../exception/darkpool.exception';
 
 const MAX_JOIN_SPLIT_NOTES = 5;
 
@@ -43,7 +44,11 @@ export class NoteBatchJoinSplitService {
     const tx = await mutex.runExclusive(async () => {
       return await splitservice.execute(splitContext);
     });
-    await darkPoolContext.relayerDarkPool.provider.waitForTransaction(tx, getConfirmations(darkPoolContext.chainId));
+    //check if tx is success
+    const receipt = await darkPoolContext.relayerDarkPool.provider.waitForTransaction(tx, getConfirmations(darkPoolContext.chainId));
+    if (receipt.status !== 1) {
+      throw new DarkpoolException("Split failed with tx hash " + tx);
+    }
 
     this.dbService.updateNoteSpentByWalletAndNoteCommitment(darkPoolContext.walletAddress, darkPoolContext.chainId, note.note);
 
@@ -88,7 +93,10 @@ export class NoteBatchJoinSplitService {
     const tx = await mutex.runExclusive(async () => {
       return await batchJoinSplitService.execute(context);
     });
-    await darkPoolContext.relayerDarkPool.provider.waitForTransaction(tx, getConfirmations(darkPoolContext.chainId));
+    const receipt = await darkPoolContext.relayerDarkPool.provider.waitForTransaction(tx, getConfirmations(darkPoolContext.chainId));
+    if (receipt.status !== 1) {
+      throw new DarkpoolException("Batch join split failed with tx hash " + tx);
+    }
     for (const note of notesToJoin) {
       this.dbService.updateNoteSpentByWalletAndNoteCommitment(darkPoolContext.walletAddress, darkPoolContext.chainId, note.note);
     }
