@@ -4,6 +4,7 @@ import { NoteStatus } from '../types';
 import { MyAssetsDto } from './dto/asset.dto';
 import { getNoteOnChainStatusBySignature, NoteOnChainStatus } from '@thesingularitynetwork/singularity-sdk';
 import { DarkpoolContext } from '../common/context/darkpool.context';
+import { ConfigLoader } from '../utils/configUtil';
 
 @Injectable()
 export class AccountService {
@@ -15,6 +16,10 @@ export class AccountService {
 
   public constructor() {
     this.dbService = DatabaseService.getInstance();
+  }
+
+  async getWallets(): Promise<string[]> {
+    return ConfigLoader.getInstance().getConfig().wallets.map(wallet => wallet.address);
   }
 
   async getAssetsByChainId(wallet: string, chainId: number): Promise<MyAssetsDto> {

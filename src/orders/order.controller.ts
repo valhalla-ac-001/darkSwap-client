@@ -28,7 +28,7 @@ export class OrderController {
       }
     }
 
-    if (orderDto.orderType === OrderType.STOP_LOSS_LIMIT 
+    if (orderDto.orderType === OrderType.STOP_LOSS_LIMIT
       || orderDto.orderType === OrderType.STOP_LOSS
       || orderDto.orderType === OrderType.TAKE_PROFIT
       || orderDto.orderType === OrderType.TAKE_PROFIT_LIMIT) {
