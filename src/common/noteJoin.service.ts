@@ -8,8 +8,8 @@ import { DarkpoolException } from '../exception/darkpool.exception';
 
 const MAX_JOIN_SPLIT_NOTES = 5;
 
-export class NoteBatchJoinSplitService {
-  private static instance: NoteBatchJoinSplitService;
+export class NoteJoinService {
+  private static instance: NoteJoinService;
   private dbService: DatabaseService;
   private walletMutexService: WalletMutexService;
   private constructor() {
@@ -17,7 +17,7 @@ export class NoteBatchJoinSplitService {
     this.walletMutexService = WalletMutexService.getInstance();
   }
 
-  public static getInstance(): NoteBatchJoinSplitService {
+  public static getInstance(): NoteJoinService {
     if (!NoteBatchJoinSplitService.instance) {
       NoteBatchJoinSplitService.instance = new NoteBatchJoinSplitService();
     }

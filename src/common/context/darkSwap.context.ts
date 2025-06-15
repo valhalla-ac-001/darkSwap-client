@@ -25,7 +25,7 @@ export class DarkSwapContext {
     static async createDarkSwapContext(chain: number, wallet: string) {
         const [signer, pubKey] = RpcManager.getInstance().getSignerAndPublicKey(wallet, chain)
         let swapRelayerSigner = RpcManager.getInstance().getSignerForUserSwapRelayer(chain)
-        const darkSwap = getDarSwap(chain, signer)
+        const darkSwap = getDarkSwap(chain, signer)
         let relayerDarkSwap = darkSwap
         if (!swapRelayerSigner) {
             swapRelayerSigner = signer

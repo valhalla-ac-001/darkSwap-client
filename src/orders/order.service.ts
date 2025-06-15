@@ -6,7 +6,7 @@ import { BooknodeService } from '../common/booknode.service';
 import { DarkpoolContext } from '../common/context/darkpool.context';
 import { DatabaseService } from '../common/db/database.service';
 import { AssetPairDto } from '../common/dto/assetPair.dto';
-import { NoteBatchJoinSplitService } from '../common/noteBatchJoinSplit.service';
+import { NoteBatchJoinSplitService } from '../common/noteJoin.service';
 import { getConfirmations } from '../config/networkConfig';
 import { DarkpoolException } from '../exception/darkpool.exception';
 import { NoteStatus, OrderDirection, OrderStatus, OrderType } from '../types';

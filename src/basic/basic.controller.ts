@@ -1,5 +1,5 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import { DarkpoolContext } from '../common/context/darkpool.context';
+import { DarkSwapContext } from '../common/context/darkSwap.context';
 import { TokenService } from '../common/token/token.service';
 import { BasicService } from './basic.service';
 import { DepositDto } from './dto/deposit.dto';
@@ -19,7 +19,7 @@ export class BasicController {
     type: DarkPoolSimpleResponse
   })
   async deposit(@Body() depositDto: DepositDto) {
-    const context = await DarkpoolContext.createDarkpoolContext(depositDto.chainId, depositDto.wallet)
+    const context = await DarkSwapContext.createDarkSwapContext(depositDto.chainId, depositDto.wallet)
     const token = await TokenService.getTokenByChainId(depositDto.chainId, depositDto.asset);
     await this.basicService.deposit(context, token, BigInt(depositDto.amount));
   }
@@ -31,17 +31,17 @@ export class BasicController {
     type: DarkPoolSimpleResponse
   })
   async withdraw(@Body() withdrawDto: WithdrawDto) {
-    const context = await DarkpoolContext.createDarkpoolContext(withdrawDto.chainId, withdrawDto.wallet)
+    const context = await DarkSwapContext.createDarkSwapContext(withdrawDto.chainId, withdrawDto.wallet)
     const token = await TokenService.getTokenByChainId(withdrawDto.chainId, withdrawDto.asset);
     await this.basicService.withdraw(context, token, BigInt(withdrawDto.amount), withdrawDto.receiptAddress);
   }
 
-  @Post('mintAccessToken')
-  @ApiResponse({
-    status: 200,
-    description: 'Mint access token success',
-    type: DarkPoolSimpleResponse
-  })
-  async mintAccessToken(@Body() baseDto: BaseDto) {
-  }
+  //@Post('mintAccessToken')
+  //@ApiResponse({
+  //  status: 200,
+  //  description: 'Mint access token success',
+  //  type: DarkPoolSimpleResponse
+  //})
+  //async mintAccessToken(@Body() baseDto: BaseDto) {
+  //}
 }

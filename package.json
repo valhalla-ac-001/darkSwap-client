@@ -1,7 +1,7 @@
 {
-  "name": "darkSwap-client",
+  "name": "darkswap-client",
   "version": "1.0.0",
-  "description": "A dark pool client with RESTful API and order management",
+  "description": "A dark swap client with RESTful API and order management",
   "main": "dist/main.js",
   "scripts": {
     "start": "node dist/main.js config=./config.yaml",

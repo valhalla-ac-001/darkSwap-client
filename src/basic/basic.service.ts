@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DepositService, Token, WithdrawService, isAddressCompliant } from '@thesingularitynetwork/singularity-sdk';
-import { DarkpoolContext } from '../common/context/darkpool.context';
+import { DepositService, Token, WithdrawService } from '@thesingularitynetwork/darkswap-sdk';
+import { DarkSwapContext } from '../common/context/darkSwap.context';
 import { DatabaseService } from '../common/db/database.service';
-import { NoteBatchJoinSplitService } from '../common/noteBatchJoinSplit.service';
+import { NoteJoinService } from '../common/noteJoin.service';
 import { getConfirmations } from '../config/networkConfig';
 import { WalletMutexService } from '../common/mutex/walletMutex.service';
 
@@ -13,17 +13,17 @@ export class BasicService {
 
   private static instance: BasicService;
   private dbService: DatabaseService;
-  private noteBatchJoinSplitService: NoteBatchJoinSplitService;
+  private noteJoinService: NoteJoinService;
   private walletMutexService: WalletMutexService;
   public constructor() {
     this.dbService = DatabaseService.getInstance();
-    this.noteBatchJoinSplitService = NoteBatchJoinSplitService.getInstance();
+    this.noteJoinService = NoteJoinService.getInstance();
     this.walletMutexService = WalletMutexService.getInstance();
   }
 
   // Method to deposit funds
-  async deposit(darkPoolContext: DarkpoolContext, asset: Token, amount: bigint) {
-    const depositService = new DepositService(darkPoolContext.darkPool);
+  async deposit(darkSwapContext: DarkSwapContext, asset: Token, amount: bigint) {
+    const depositService = new DepositService(darkSwapContext.darkSwap);
     const { context, outNotes } = await depositService.prepare(
       asset.address, BigInt(amount), darkPoolContext.walletAddress, darkPoolContext.signature);
 
