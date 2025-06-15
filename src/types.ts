@@ -7,9 +7,6 @@ export enum ChainId {
     SEPOLIA = 11155111,
     ARBITRUM_ONE = 42161,
     BASE = 8453,
-    BounceBit = 6001,
-    BounceBitTestnet = 6000,
-    EMCTestnet = 99876,
 }
 
 export type HexData = `0x${string}`
@@ -20,18 +17,10 @@ export type NetworkConfig = {
     priceOracle: HexData
     ethAddress: HexData
     nativeWrapper: HexData
-    complianceManager: HexData
     merkleTreeOperator: HexData
-    darkpoolAssetManager: HexData
-    nftAssetManager: HexData
-    drakpoolSubgraphUrl: string
-    stakingOperator: HexData
-    stakingAssetManager: HexData
-    sablierDynamicAssetManager: HexData
-    sablierLinearAssetManager: HexData
-    oTCSwapAssetManager: HexData
-    batchJoinSplitAssetManager: HexData
-    darkPoolSwapAssetManager: HexData
+    darkSwapAssetManager: HexData
+    darkSwapFeeAssetManager: HexData
+    drakSwapSubgraphUrl: string
 
     explorerUrl: {
         tx: string
@@ -57,6 +46,12 @@ export enum NoteStatus {
     ACTIVE = 1,
     SPENT = 2,
     LOCKED = 3,
+}
+
+export enum NoteType{
+    SINGULARITY = 0,
+    DARKSWAP = 1,
+    DARKSWAP_ORDER = 2,
 }
 
 export enum OrderStatus {

@@ -1,44 +1,40 @@
-import { DarkPool, isAddressCompliant } from "@thesingularitynetwork/singularity-sdk"
+import { DarkSwap } from "@thesingularitynetwork/darkswap-sdk"
 import { Signer } from "ethers"
-import { getDarkPool } from "../../utils/darkpool"
+import { getDarkSwap } from "../../utils/darkSwap"
 import RpcManager from "../../utils/rpcManager"
 
-export class DarkpoolContext {
+export class DarkSwapContext {
     chainId: number
     signer: Signer
     walletAddress: string
     publicKey: string
-    darkPool: DarkPool
-    relayerDarkPool: DarkPool
+    darkSwap: DarkSwap
+    relayerDarkSwap: DarkSwap
     signature: string
 
-    private constructor(chain: number, wallet: string, signer: Signer, pubKey: string, darkPool: DarkPool, relayerDarkPool: DarkPool, signature: string) {
+    private constructor(chain: number, wallet: string, signer: Signer, pubKey: string, darkSwap: DarkSwap, relayerDarkSwap: DarkSwap, signature: string) {
         this.chainId = chain
         this.walletAddress = wallet
         this.signer = signer
         this.publicKey = pubKey
-        this.darkPool = darkPool
-        this.relayerDarkPool = relayerDarkPool
+        this.darkSwap = darkSwap
+        this.relayerDarkSwap = relayerDarkSwap
         this.signature = signature
     }
 
-    static async createDarkpoolContext(chain: number, wallet: string) {
+    static async createDarkSwapContext(chain: number, wallet: string) {
         const [signer, pubKey] = RpcManager.getInstance().getSignerAndPublicKey(wallet, chain)
         let swapRelayerSigner = RpcManager.getInstance().getSignerForUserSwapRelayer(chain)
-        const darkPool = getDarkPool(chain, signer)
-        let relayerDarkPool = darkPool
+        const darkSwap = getDarSwap(chain, signer)
+        let relayerDarkSwap = darkSwap
         if (!swapRelayerSigner) {
             swapRelayerSigner = signer
         } else {
-            relayerDarkPool = getDarkPool(chain, swapRelayerSigner)
-        }
-
-        if (!isAddressCompliant(wallet, darkPool)) {
-            throw new Error("Wallet is not compliant")
+            relayerDarkSwap = getDarkSwap(chain, swapRelayerSigner)
         }
 
         const domain = {
-            name: "SingularityDarkpoolClientServer",
+            name: "SingularityDarSwapClientServer",
             version: "1",
         };
 
@@ -55,6 +51,6 @@ export class DarkpoolContext {
         };
 
         const signature = await signer.signTypedData(domain, types, value);
-        return new DarkpoolContext(chain, wallet, signer, pubKey, darkPool, relayerDarkPool, signature)
+        return new DarkSwapContext(chain, wallet, signer, pubKey, darkSwap, relayerDarkSwap, signature)
     }
 } 

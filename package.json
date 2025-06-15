@@ -1,5 +1,5 @@
 {
-  "name": "darkpool-client",
+  "name": "darkSwap-client",
   "version": "1.0.0",
   "description": "A dark pool client with RESTful API and order management",
   "main": "dist/main.js",
@@ -12,15 +12,13 @@
     "docker:build": "docker build -t singularity-pro ."
   },
   "dependencies": {
-    "@aztec/bb.js": "^0.70.0",
+    "@aztec/bb.js": "^0.84.0",
     "@fireblocks/fireblocks-web3-provider": "^1.3.17",
     "@nestjs/common": "^10.0.0",
     "@nestjs/core": "^10.0.0",
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/swagger": "^8.1.0",
-    "@thesingularitynetwork/darkpool-v1-proof": "^0.2.40",
-    "@thesingularitynetwork/singularity-sdk": "^0.0.44",
-    "async-mutex": "^0.5.0",
+    "@thesingularitynetwork/darkswap-sdk": "^0.1.0",
     "better-sqlite3": "^11.8.0",
     "class-validator": "^0.14.1",
     "ethers": "^6.13.4",
@@ -39,6 +37,7 @@
     "@nestjs/testing": "^10.0.0",
     "@types/better-sqlite3": "^7.6.12",
     "@types/jest": "^29.0.0",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "22.10.1",
     "@types/ws": "^8.5.13",
     "@typescript-eslint/eslint-plugin": "8.18.2",
