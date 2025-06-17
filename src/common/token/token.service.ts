@@ -1,4 +1,4 @@
-import { Token } from "@thesingularitynetwork/singularity-sdk";
+import { Token } from "@thesingularitynetwork/darkswap-sdk";
 import { Contract } from "ethers";
 import { tokenConfig } from "../../config/tokenConfig";
 import RpcManager from "../../utils/rpcManager";

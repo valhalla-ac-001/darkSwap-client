@@ -9,7 +9,4 @@ export class WithdrawDto extends BaseDto {
   @ApiProperty()
   @IsNotEmpty()
   amount: string;
-  @ApiProperty()
-  @IsEthereumAddress()
-  receiptAddress: string;
 } 

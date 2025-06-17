@@ -4,7 +4,7 @@ export class NoteDto extends BaseDto {
     id: number;
     publicKey: string;
     type: number;
-    noteCommitment: bigint;
+    note: bigint;
     rho: bigint;
     asset: string;
     amount: bigint;

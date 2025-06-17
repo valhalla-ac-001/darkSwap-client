@@ -1,10 +1,10 @@
 import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
-import { DarkpoolException } from '../exception/darkpool.exception';
+import { DarkSwapException } from '../exception/darkSwap.exception';
 import { DarkPoolResponse, DarkPoolSimpleResponse } from './response.interface';
 
-@Catch(DarkpoolException)
+@Catch(DarkSwapException)
 export class DarkpoolExceptionFilter implements ExceptionFilter {
-  catch(exception: DarkpoolException, host: ArgumentsHost) {
+  catch(exception: DarkSwapException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
     const status = exception.getStatus();

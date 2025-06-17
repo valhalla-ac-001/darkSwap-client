@@ -49,9 +49,9 @@ export enum NoteStatus {
 }
 
 export enum NoteType{
-    SINGULARITY = 0,
-    DARKSWAP = 1,
-    DARKSWAP_ORDER = 2,
+    DARKSWAP = 0,
+    DARKSWAP_ORDER = 1,
+    SINGULARITY = 2,
 }
 
 export enum OrderStatus {

@@ -1,6 +1,7 @@
-import { Note } from '@thesingularitynetwork/darkpool-v1-proof';
-import { DarkpoolContext } from './context/darkpool.context';
+import { DarkSwapNote } from '@thesingularitynetwork/darkswap-sdk';
+import { DarkSwapContext } from './context/darkSwap.context';
 import { DatabaseService } from './db/database.service';
+import { NoteType } from '../types';
 
 export class NoteService {
   private static instance: NoteService;
@@ -17,36 +18,36 @@ export class NoteService {
     return NoteService.instance;
   }
 
-  public addNotes(notes: Note[], darkPoolContext: DarkpoolContext) {
+  public async addNotes(notes: DarkSwapNote[], darkSwapContext: DarkSwapContext, isOrderNote: boolean) {
     for (const note of notes) {
-      this.addNote(note, darkPoolContext);
+      await this.addNote(note, darkSwapContext, isOrderNote);
     }
   }
 
-  public addNote(note: Note, darkPoolContext: DarkpoolContext) {
-    this.dbService.addNote(
-      darkPoolContext.chainId,
-      darkPoolContext.publicKey,
-      darkPoolContext.walletAddress,
-      0,
+  public async addNote(note: DarkSwapNote, darkSwapContext: DarkSwapContext, isOrderNote: boolean, txHash?: string) {
+    await this.dbService.addNote(
+      darkSwapContext.chainId,
+      darkSwapContext.publicKey,
+      darkSwapContext.walletAddress,
+      isOrderNote? NoteType.DARKSWAP_ORDER: NoteType.DARKSWAP,
       note.note,
       note.rho,
       note.asset,
       note.amount,
-      '');
+      txHash? txHash : '');
   }
 
-  public setNoteUsed(note: Note, darkPoolContext: DarkpoolContext) {
-    this.dbService.updateNoteSpentByWalletAndNoteCommitment(darkPoolContext.walletAddress, darkPoolContext.chainId, note.note);
+  public async setNoteUsed(note: DarkSwapNote, darkSwapContext: DarkSwapContext) {
+    await this.dbService.updateNoteSpentByWalletAndNoteCommitment(darkSwapContext.walletAddress, darkSwapContext.chainId, note.note);
   }
 
-  public setNotesActive(notes: Note[], darkPoolContext: DarkpoolContext, txHash: string) {
+  public async setNotesActive(notes: DarkSwapNote[], darkSwapContext: DarkSwapContext, txHash: string) {
     for (const note of notes) {
-      this.setNoteActive(note, darkPoolContext, txHash);
+      await this.setNoteActive(note, darkSwapContext, txHash);
     }
   }
 
-  public setNoteActive(note: Note, darkPoolContext: DarkpoolContext, txHash: string) {
-    this.dbService.updateNoteTransactionByWalletAndNoteCommitment (darkPoolContext.walletAddress, darkPoolContext.chainId, note.note, txHash);
+  public async setNoteActive(note: DarkSwapNote, darkSwapContext: DarkSwapContext, txHash: string) {
+    await this.dbService.updateNoteTransactionByWalletAndNoteCommitment (darkSwapContext.walletAddress, darkSwapContext.chainId, note.note, txHash);
   }
 }

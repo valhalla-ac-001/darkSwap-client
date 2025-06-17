@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import { ConfigLoader } from './configUtil';
 import { WalletConfig } from './configValidator';
-import { DarkpoolException } from '../exception/darkpool.exception';
+import { DarkpoolException } from '../exception/darkSwap.exception';
 import { FireblocksWeb3Provider } from '@fireblocks/fireblocks-web3-provider';
 
 class RpcManager {

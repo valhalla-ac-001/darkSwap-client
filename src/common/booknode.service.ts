@@ -6,7 +6,7 @@ import { TakerConfirmDto } from '../settlement/dto/takerConfirm.dto';
 import { ConfigLoader } from '../utils/configUtil';
 import { UpdatePriceDto } from '../orders/dto/updatePrice.dto';
 import { OrderDto } from '../orders/dto/order.dto';
-import { DarkpoolException } from '../exception/darkpool.exception';
+import { DarkSwapException } from '../exception/darkSwap.exception';
 import { OrderType } from '../types';
 
 interface BookNodeMatchedOrder {
@@ -80,7 +80,7 @@ export class BooknodeService {
             return result;
         } catch (error) {
             console.error('Error in sendPutRequest:', error.response ? error.response.data : error.message);
-            throw new DarkpoolException(`Failed to send request to booknode for url: ${url}`);
+            throw new DarkSwapException(`Failed to send request to booknode for url: ${url}`);
         }
     }
 
@@ -95,7 +95,7 @@ export class BooknodeService {
             return result;
         } catch (error) {
             console.error('Error in sendRequest:', error.response ? error.response.data : error.message);
-            throw new DarkpoolException(`Failed to send request to booknode for url: ${url}`);
+            throw new DarkSwapException(`Failed to send request to booknode for url: ${url}`);
         }
     }
 

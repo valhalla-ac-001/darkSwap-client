@@ -1,13 +1,13 @@
-import { calcNullifier, DarkPoolTakerSwapMessage, getNullifier, Note } from '@thesingularitynetwork/darkpool-v1-proof';
+import { calcNullifier, DarkPoolTakerSwapMessage, getNullifier, Note } from '@thesingularitynetwork/darkswap-sdk';
 import { deserializeDarkPoolTakerSwapMessage, getNoteOnChainStatusByPublicKey, getNoteOnChainStatusBySignature, hexlify32, MakerSwapService, NoteOnChainStatus, Order, serializeDarkPoolTakerSwapMessage } from '@thesingularitynetwork/singularity-sdk';
 import { BooknodeService } from '../common/booknode.service';
-import { DarkpoolContext } from '../common/context/darkpool.context';
+import { DarkSwapContext } from '../common/context/darkSwap.context';
 import { DatabaseService } from '../common/db/database.service';
 import { NoteDto } from '../common/dto/note.dto';
 import { NoteService } from '../common/note.service';
 import { SubgraphService } from '../common/subgraph.service';
 import { getConfirmations } from '../config/networkConfig';
-import { DarkpoolException } from '../exception/darkpool.exception';
+import { DarkSwapException } from '../exception/darkSwap.exception';
 import { OrderDto } from '../orders/dto/order.dto';
 import { OrderEventService } from '../orders/orderEvent.service';
 import { OrderDirection, OrderStatus } from '../types';

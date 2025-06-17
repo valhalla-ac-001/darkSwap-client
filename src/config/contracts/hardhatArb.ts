@@ -1,31 +1,10 @@
 export const hardhatArbContracts = {
     "mimc254": "0x4fd715125CD4E604A89130a8d573db91B086CB60",
-    "merkleTreeOperator": "0x58F5a2711c7464B950361529ca81713B35D487b1",
-    "quadrataManager": "0xEc22b69767B5edD55b7DC6A4B6FD9ba4D0B3d320",
-    "zkmeManager": "0xce33621C656f68fC35A461B7c9B09d90B9a1d548",
-    "accessPortal": "0xd0C021931Bc6279dEe7a139b05F198038E9C53F7",
-    "relayerHub": "0x0991d3831Ee86D349497039bB604FA1FB2aE0571",
-    "feeManager": "0x8806fc80A0274Eda6a45E2944f6bB6E6Bb635831",
-    "sgtvNft": "0x4f07450Ef721147D38f29739eEe8079bC147f1f6",
-    "stakingOperator": "0xd18595a8e5D7d1b14Ff1537Bf4E930a603BAAe18",
+    "merkleTreeOperator": "0x0", //FIXME
     "verifierHub": "0x18978acF54162a2ea9bA1eC162323E7DF72679fD",
     "eRC20AssetPool": "0x9896a5CbCda7c64D73244BdA128Dd70b612E952e",
     "eRC721AssetPool": "0x4C1EeD13C1ef880fF5E36dFc377DfE1B80E451B0",
     "eTHAssetPool": "0xedEe4820327176Bd433d13421DD558A7191193Aa",
-    "darkpoolAssetManager": "0xc5B86EcB7Cf82213B392D668614429A0d0763745",
-    "nftAssetManager": "0x443729DFF68Dcc675463b0ED918ae57E00A3133b",
-    "oTCSwapAssetManager": "0xa40E009b306B3b4f27374f6e833291DaAeC88cc6",
-    "generalDefiIntegrationAssetManager": "0x049310fd480768f048a935AE938EF25047e77e79",
-    "sablierDynamicAssetManager": "0xf7461a489c71EAE6fA1Bfe69F8c3d661De0619Da",
-    "sablierLinearAssetManager": "0xb4d3f14A8FE911fE8A0Cc68F3C0424fD88C0a96E",
-    "stakingAssetManager": "0x6D13297026894C958807F34957e58D7CAC18C5A6",
-    "torosAssetManager": "0x4268eD4F726727974861AD319F29cC3354d6526B",
-    "uniswapLiquidityAssetManager": "0xd1d50299505DE6C56e564E15eeF88CcA3b168832",
-    "uniswapSwapAssetManager": "0x3D7CD28EfD08FfE9Ce8cA329EC2e67822C756526",
-    "sgETH": "0x8A14aFDa2dde0dAF55b0271Cb9Dc2376F40DeCdC",
-    "sgUSDC": "0xc3d6be0415e8257fE8Cec8317A25d73C8C57c0A0",
-    "sgUSDT": "0x5e8bC075e088666F6D3CF6539A32B4c280Cdf4D8",
-    "batchJoinSplitAssetManager": "0x0",
-    "darkPoolSwapAssetManager": "0x0",
-
+    "darkSwapAssetManager": "0x0", //FIXME
+    "darkSwapFeeAssetManager": "0x0", //FIXME
 }

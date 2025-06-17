@@ -56,6 +56,9 @@ export class OrderDto extends BaseDto {
     @ApiProperty({description: 'Amount with decimals'})
     @IsOptional()
     partialAmountIn?: string;
+    
+    feeRatio: string;
+    
     @ApiProperty()
     @IsOptional()
     status?: OrderStatus;

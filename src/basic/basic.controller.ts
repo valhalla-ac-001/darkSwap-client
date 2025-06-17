@@ -33,7 +33,7 @@ export class BasicController {
   async withdraw(@Body() withdrawDto: WithdrawDto) {
     const context = await DarkSwapContext.createDarkSwapContext(withdrawDto.chainId, withdrawDto.wallet)
     const token = await TokenService.getTokenByChainId(withdrawDto.chainId, withdrawDto.asset);
-    await this.basicService.withdraw(context, token, BigInt(withdrawDto.amount), withdrawDto.receiptAddress);
+    await this.basicService.withdraw(context, token, BigInt(withdrawDto.amount));
   }
 
   //@Post('mintAccessToken')

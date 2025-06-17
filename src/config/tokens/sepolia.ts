@@ -1,22 +1,4 @@
 
-export const sepoliaNftTokens = [
-    {
-        name: 'Sablier V2 Lockup Linear NFT',
-        symbol: 'SABV2LL',
-        address: '0x7a43f8a888fa15e68c103e18b0439eb1e98e4301',
-    },
-    {
-        name: 'Sablier V2 Lockup Dynamic NFT',
-        symbol: 'SABV2LD',
-        address: '0x73BB6dD3f5828d60F8b3dBc8798EB10fbA2c5636',
-    },
-    {
-        name: 'Uniswap V3: Positions NFT',
-        symbol: 'UNIV3POS',
-        address: '0xC36442b4a4522E871399CD717aBDD847Ab11FE88',
-    }
-];
-
 export const sepoliaTokens = [
     {
         name: 'SepoliaETH',

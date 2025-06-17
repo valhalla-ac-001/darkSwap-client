@@ -4,7 +4,7 @@ import { NoteDto } from '../dto/note.dto';
 import { AssetPairDto } from '../dto/assetPair.dto';
 import { OrderDto } from '../../orders/dto/order.dto';
 import { ConfigLoader } from '../../utils/configUtil';
-import { NoteStatus, OrderStatus } from '../../types';
+import { NoteStatus, OrderStatus, NoteType } from '../../types';
 import { OrderEventDto } from '../../orders/dto/orderEvent.dto';
 
 
@@ -76,10 +76,10 @@ export class DatabaseService {
     return Number(result.lastInsertRowid);
   }
 
-  public async getNotesByWalletAndChainIdAndAsset(walletAddress: string, chainId: number, asset: string): Promise<NoteDto[]> {
-    const query = `SELECT * FROM NOTES WHERE wallet = ? AND chainId = ? AND asset = ? AND (status = ? OR status = ?)`;
+  public async getAssetNotesByWalletAndChainIdAndAsset(walletAddress: string, chainId: number, asset: string): Promise<NoteDto[]> {
+    const query = `SELECT * FROM NOTES WHERE wallet = ? AND chainId = ? AND asset = ? AND status = ? AND type = ?`;
     const stmt = this.db.prepare(query);
-    const rows = stmt.all(walletAddress.toLowerCase(), chainId, asset.toLowerCase(), NoteStatus.ACTIVE, NoteStatus.LOCKED) as NoteEntity[];
+    const rows = stmt.all(walletAddress.toLowerCase(), chainId, asset.toLowerCase(), NoteStatus.ACTIVE, NoteType.DARKSWAP) as NoteEntity[];
 
     const notes = rows.map(row => ({
       id: row.id,
@@ -87,7 +87,7 @@ export class DatabaseService {
       publicKey: row.publicKey,
       wallet: row.wallet,
       type: row.type,
-      noteCommitment: BigInt(row.noteCommitment),
+      note: BigInt(row.noteCommitment),
       rho: BigInt(row.rho),
       asset: row.asset.toLowerCase(),
       amount: BigInt(row.amount.toString()),
@@ -97,6 +97,52 @@ export class DatabaseService {
 
     return notes;
   }
+
+
+  public async getNotesByWalletAndChainIdAndAsset(walletAddress: string, chainId: number, asset: string): Promise<NoteDto[]> {
+    const query = `SELECT * FROM NOTES WHERE wallet = ? AND chainId = ? AND asset = ? AND status = ?`;
+    const stmt = this.db.prepare(query);
+    const rows = stmt.all(walletAddress.toLowerCase(), chainId, asset.toLowerCase(), NoteStatus.ACTIVE) as NoteEntity[];
+
+    const notes = rows.map(row => ({
+      id: row.id,
+      chainId: row.chainId,
+      publicKey: row.publicKey,
+      wallet: row.wallet,
+      type: row.type,
+      note: BigInt(row.noteCommitment),
+      rho: BigInt(row.rho),
+      asset: row.asset.toLowerCase(),
+      amount: BigInt(row.amount.toString()),
+      status: row.status,
+      txHashCreated: row.txHashCreated,
+    }));
+
+    return notes;
+  }
+
+    public async getAssetsNotesByWalletAndChainId(walletAddress: string, chainId: number): Promise<NoteDto[]> {
+    const query = `SELECT * FROM NOTES WHERE wallet = ? AND chainId = ? AND (status = ? OR status = ?) AND type = ?`;
+    const stmt = this.db.prepare(query);
+    const rows = stmt.all(walletAddress.toLowerCase(), chainId, NoteStatus.ACTIVE, NoteStatus.LOCKED, NoteType.DARKSWAP) as NoteEntity[];
+
+    const notes = rows.map(row => ({
+      id: row.id,
+      chainId: row.chainId,
+      publicKey: row.publicKey,
+      wallet: row.wallet,
+      type: row.type,
+      note: BigInt(row.noteCommitment),
+      rho: BigInt(row.rho),
+      asset: row.asset.toLowerCase(),
+      amount: BigInt(row.amount.toString()),
+      status: row.status,
+      txHashCreated: row.txHashCreated,
+    }));
+
+    return notes;
+  }
+
 
   public async getNotesByWalletAndChainId(walletAddress: string, chainId: number): Promise<NoteDto[]> {
     const query = `SELECT * FROM NOTES WHERE wallet = ? AND chainId = ? AND (status = ? OR status = ?)`;
@@ -109,7 +155,7 @@ export class DatabaseService {
       publicKey: row.publicKey,
       wallet: row.wallet,
       type: row.type,
-      noteCommitment: BigInt(row.noteCommitment),
+      note: BigInt(row.noteCommitment),
       rho: BigInt(row.rho),
       asset: row.asset.toLowerCase(),
       amount: BigInt(row.amount.toString()),
@@ -131,7 +177,7 @@ export class DatabaseService {
       publicKey: row.publicKey,
       wallet: row.wallet,
       type: row.type,
-      noteCommitment: BigInt(row.noteCommitment),
+      note: BigInt(row.noteCommitment),
       rho: BigInt(row.rho),
       asset: row.asset.toLowerCase(),
       amount: BigInt(row.amount.toString()),
@@ -153,7 +199,7 @@ export class DatabaseService {
       publicKey: row.publicKey,
       wallet: row.wallet,
       type: row.type,
-      noteCommitment: BigInt(row.noteCommitment),
+      note: BigInt(row.noteCommitment),
       rho: BigInt(row.rho),
       asset: row.asset,
       amount: BigInt(row.amount.toString()),
@@ -174,7 +220,7 @@ export class DatabaseService {
       publicKey: row.publicKey,
       wallet: row.wallet,
       type: row.type,
-      noteCommitment: BigInt(row.noteCommitment),
+      note: BigInt(row.noteCommitment),
       rho: BigInt(row.rho),
       asset: row.asset,
       amount: BigInt(row.amount.toString()),
@@ -194,7 +240,7 @@ export class DatabaseService {
       publicKey: row.publicKey,
       wallet: row.wallet,
       type: row.type,
-      noteCommitment: BigInt(row.noteCommitment),
+      note: BigInt(row.noteCommitment),
       rho: BigInt(row.rho),
       asset: row.asset,
       amount: BigInt(row.amount.toString()),
@@ -215,7 +261,7 @@ export class DatabaseService {
       publicKey: row.publicKey,
       wallet: row.wallet,
       type: row.type,
-      noteCommitment: BigInt(row.noteCommitment),
+      note: BigInt(row.noteCommitment),
       rho: BigInt(row.rho),
       asset: row.asset,
       amount: BigInt(row.amount.toString()),
@@ -321,47 +367,18 @@ export class DatabaseService {
     const query = `INSERT INTO ORDERS (
       orderId, chainId, assetPairId, orderDirection, orderType, 
       timeInForce, stpMode, price, amountOut, amountIn, 
-      partialAmountIn, status, wallet, publicKey, noteCommitment, 
+      partialAmountIn, feeRatio, status, wallet, publicKey, noteCommitment, 
       nullifier, txHashCreated)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     const stmt = this.db.prepare(query);
     stmt.run(
       order.orderId, order.chainId, order.assetPairId, order.orderDirection, order.orderType, 
       order.timeInForce, order.stpMode, order.price, order.amountOut, order.amountIn, 
-      order.partialAmountIn, order.status, order.wallet, order.publicKey, order.noteCommitment.toString(), 
+      order.partialAmountIn, order.feeRatio,order.status, order.wallet, order.publicKey, order.noteCommitment.toString(), 
       order.nullifier, order.txHashCreated);
 
   }
 
-  public async addOrder(
-    orderId: string,
-    chainId: number,
-    assetPairId: string,
-    orderDirection: number,
-    orderType: number,
-    timeInForce: number,
-    stpMode: number,
-    price: string,
-    amountOut: bigint,
-    amountIn: bigint,
-    partialAmountIn: bigint,
-    status: number,
-    wallet: string,
-    publicKey: string,
-    noteCommitment: bigint,
-    nullifier: bigint,
-    signature: string,
-    txHashCreated: string) {
-    const query = `INSERT INTO ORDERS (
-      orderId, chainId, assetPairId, orderDirection, orderType, timeInForce, stpMode, price, amountOut, amountIn, partialAmountIn, status, wallet, publicKey, noteCommitment, nullifier, signature, txHashCreated)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-    const stmt = this.db.prepare(query);
-    stmt.run(
-      orderId, chainId, assetPairId, orderDirection, orderType, 
-      timeInForce, stpMode, price, amountOut, amountIn, 
-      partialAmountIn, OrderStatus.OPEN, wallet, publicKey, noteCommitment, 
-      nullifier, signature, txHashCreated);
-  }
 
   public async getOrdersByStatusAndPage(status: number, page: number, limit: number): Promise<OrderDto[]> {
     const offset = (page - 1) * limit;
@@ -381,6 +398,7 @@ export class DatabaseService {
       amountOut: row.amountOut,
       amountIn: row.amountIn,
       partialAmountIn: row.partialAmountIn,
+      feeRatio: row.feeRatio, 
       wallet: row.wallet,
       status: row.status,
       publicKey: row.publicKey,
@@ -421,6 +439,7 @@ export class DatabaseService {
       amountOut: row.amountOut,
       amountIn: row.amountIn,
       partialAmountIn: row.partialAmountIn,
+      feeRatio: row.feeRatio,
       wallet: row.wallet,
       status: row.status,
       publicKey: row.publicKey,

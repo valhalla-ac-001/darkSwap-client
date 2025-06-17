@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { DatabaseService } from '../common/db/database.service';
 import { NoteStatus } from '../types';
 import { MyAssetsDto } from './dto/asset.dto';
-import { getNoteOnChainStatusBySignature, NoteOnChainStatus } from '@thesingularitynetwork/singularity-sdk';
-import { DarkpoolContext } from '../common/context/darkpool.context';
+import { getNoteOnChainStatusBySignature, NoteOnChainStatus } from '@thesingularitynetwork/darkswap-sdk';
+import { DarkSwapContext } from '../common/context/darkSwap.context';
 import { ConfigLoader } from '../utils/configUtil';
 
 @Injectable()
@@ -23,7 +23,7 @@ export class AccountService {
   }
 
   async getAssetsByChainId(wallet: string, chainId: number): Promise<MyAssetsDto> {
-    const notes = await this.dbService.getNotesByWalletAndChainId(wallet, chainId);
+    const notes = await this.dbService.getAssetsNotesByWalletAndChainId(wallet, chainId);
     const assetMap = new Map<string, { amount: bigint, lockedAmount: bigint }>();
 
     for (const note of notes) {
@@ -103,7 +103,7 @@ export class AccountService {
     return myAssetsArray;
   }
 
-  async syncOneAsset(darkpoolContext: DarkpoolContext, wallet: string, chainId: number, asset: string): Promise<void> {
+  async syncOneAsset(darkSwapContext: DarkSwapContext, wallet: string, chainId: number, asset: string): Promise<void> {
 
     const notes = (await this.dbService.getNotesByWalletAndChainIdAndAsset(wallet, chainId, asset)).sort((a, b) => a.amount < b.amount ? 1 : -1);
 
@@ -111,22 +111,22 @@ export class AccountService {
       try {
         if (note.status != NoteStatus.SPENT) {
           const onChainStatus = await getNoteOnChainStatusBySignature(
-            darkpoolContext.darkPool,
+            darkSwapContext.darkSwap,
             {
-              note: note.noteCommitment,
+              note: note.note,
               rho: note.rho,
               amount: note.amount,
               asset: note.asset
             },
-            darkpoolContext.signature);
+            darkSwapContext.signature);
           if (onChainStatus == NoteOnChainStatus.ACTIVE && note.status != NoteStatus.ACTIVE) {
-            this.dbService.updateNoteActiveByWalletAndNoteCommitment(wallet, chainId, note.noteCommitment);
+            this.dbService.updateNoteActiveByWalletAndNoteCommitment(wallet, chainId, note.note);
           } else if (onChainStatus == NoteOnChainStatus.LOCKED && note.status != NoteStatus.LOCKED) {
-            this.dbService.updateNoteLockedByWalletAndNoteCommitment(wallet, chainId, note.noteCommitment);
+            this.dbService.updateNoteLockedByWalletAndNoteCommitment(wallet, chainId, note.note);
           } else if (onChainStatus == NoteOnChainStatus.SPENT && note.status != NoteStatus.SPENT) {
-            this.dbService.updateNoteSpentByWalletAndNoteCommitment(wallet, chainId, note.noteCommitment);
+            this.dbService.updateNoteSpentByWalletAndNoteCommitment(wallet, chainId, note.note);
           } else if (onChainStatus == NoteOnChainStatus.UNKNOWN && note.status != NoteStatus.CREATED) {
-            this.dbService.updateNoteCreatedByWalletAndNoteCommitment(wallet, chainId, note.noteCommitment);
+            this.dbService.updateNoteCreatedByWalletAndNoteCommitment(wallet, chainId, note.note);
           }
         }
       } catch (error) {
@@ -135,29 +135,29 @@ export class AccountService {
     }
   }
 
-  async syncAssets(darkpoolContext: DarkpoolContext, wallet: string, chainId: number): Promise<void> {
+  async syncAssets(darkSwapContext: DarkSwapContext, wallet: string, chainId: number): Promise<void> {
     const notes = await this.dbService.getNotesByWalletAndChainId(wallet, chainId);
 
     for (const note of notes) {
       try {
         if (note.status != NoteStatus.SPENT) {
           const onChainStatus = await getNoteOnChainStatusBySignature(
-            darkpoolContext.darkPool,
+            darkSwapContext.darkSwap,
             {
-              note: note.noteCommitment,
+              note: note.note,
               rho: note.rho,
               amount: note.amount,
               asset: note.asset
             },
-            darkpoolContext.signature);
+            darkSwapContext.signature);
           if (onChainStatus == NoteOnChainStatus.ACTIVE && note.status != NoteStatus.ACTIVE) {
-            this.dbService.updateNoteActiveByWalletAndNoteCommitment(wallet, chainId, note.noteCommitment);
+            this.dbService.updateNoteActiveByWalletAndNoteCommitment(wallet, chainId, note.note);
           } else if (onChainStatus == NoteOnChainStatus.LOCKED && note.status != NoteStatus.LOCKED) {
-            this.dbService.updateNoteLockedByWalletAndNoteCommitment(wallet, chainId, note.noteCommitment);
+            this.dbService.updateNoteLockedByWalletAndNoteCommitment(wallet, chainId, note.note);
           } else if (onChainStatus == NoteOnChainStatus.SPENT && note.status != NoteStatus.SPENT) {
-            this.dbService.updateNoteSpentByWalletAndNoteCommitment(wallet, chainId, note.noteCommitment);
+            this.dbService.updateNoteSpentByWalletAndNoteCommitment(wallet, chainId, note.note);
           } else if (onChainStatus == NoteOnChainStatus.UNKNOWN && note.status != NoteStatus.CREATED) {
-            this.dbService.updateNoteCreatedByWalletAndNoteCommitment(wallet, chainId, note.noteCommitment);
+            this.dbService.updateNoteCreatedByWalletAndNoteCommitment(wallet, chainId, note.note);
           }
         }
       } catch (error) {

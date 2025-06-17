@@ -63,6 +63,7 @@ export default {
             amountOut TEXT NOT NULL,
             amountIn TEXT NOT NULL,
             partialAmountIn TEXT NOT NULL,
+            feeRatio TEXT NOT NULL,
             status INTERGER NOT NULL,
             wallet TEXT NOT NULL,
             publicKey TEXT NOT NULL,

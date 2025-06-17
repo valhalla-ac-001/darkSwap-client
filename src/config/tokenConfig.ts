@@ -1,4 +1,4 @@
-import { Token } from "@thesingularitynetwork/singularity-sdk";
+import { Token } from "@thesingularitynetwork/darkswap-sdk";
 import { ChainId } from "../types";
 import { hardhatTokens } from "./tokens/hardhat";
 import { hardhatArbTokens } from "./tokens/hardhatArb";

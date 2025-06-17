@@ -1,8 +1,6 @@
-import { DarkSwap } from "@thesingularitynetwork/darkswap-sdk"
+import { DarkSwap, contractConfig } from "@thesingularitynetwork/darkswap-sdk"
 import { Signer } from "ethers"
 import { networkConfig } from "../config/networkConfig"
-import { relayerConfig } from "../config/relayerConfig"
-import { stakingTokenConfig } from "../config/stakingConfig"
 import { ConfigLoader } from "./configUtil"
 
 export function getDarkSwap(chainId: number, signer: Signer) {
@@ -18,13 +16,18 @@ export function getDarkSwap(chainId: number, signer: Signer) {
             memory: proofOptionConfig.memory
         }
     }
-
     const darkSwap = new DarkSwap(
         signer,
         chainId,
+        //contractConfig[chainId]
         {
-            dakSwapAssetManager: networkConfig[chainId].darkSwapAssetManager,
+            priceOracle: networkConfig[chainId].priceOracle,
+            ethAddress: networkConfig[chainId].ethAddress,
+            nativeWrapper: networkConfig[chainId].nativeWrapper,
+            merkleTreeOperator: networkConfig[chainId].merkleTreeOperator,
+            darkSwapAssetManager: networkConfig[chainId].darkSwapAssetManager,
             darkSwapFeeAssetManager: networkConfig[chainId].darkSwapFeeAssetManager,
+            drakSwapSubgraphUrl: networkConfig[chainId].drakSwapSubgraphUrl,
         }
     )
 

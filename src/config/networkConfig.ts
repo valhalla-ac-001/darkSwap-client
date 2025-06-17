@@ -23,18 +23,10 @@ export const networkConfig: { [chainId: number]: NetworkConfig } = {
     priceOracle: '0x0AdDd25a91563696D8567Df78D5A01C9a991F9B8',
     ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
     nativeWrapper: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
-    complianceManager: '0x82A5439B451D545E747314C17509B693e14B6b4F',
-    merkleTreeOperator: '0x152f1051c8D37Fba9A362Fc9b32a0eeF8496202F',
-    darkpoolAssetManager: '0x159F3668c72BBeCdF1fb31beeD606Ec9649654eB',
-    nftAssetManager: '0xbB0679f6831Ee3736AE53D8fcECB9c0e684615d0',
-    stakingOperator: '0x539bcbc08F2cA42E50887dA4Db0DC34EbF0B090b',
-    stakingAssetManager: '0x1Fa7Cb4925086128f3bb9e26761C9C75dbAC3CD1',
-    sablierDynamicAssetManager: '0x8D3d79b600433DA1EA3cC0dF7F2b086B7aBB6113',
-    sablierLinearAssetManager: '0x06665db68b6F0157c6886860B158688D94124919',
-    oTCSwapAssetManager: '0xB8096ecD7d3185b24AA218C509175185C11f13a9',
-    batchJoinSplitAssetManager: '0x0',
-    darkPoolSwapAssetManager: '0x0',
-    drakpoolSubgraphUrl:
+    merkleTreeOperator: '0x0', //FIXME
+    darkSwapAssetManager: '0x0', //FIXME
+    darkSwapFeeAssetManager: '0x0', //FIXME
+    drakSwapSubgraphUrl:
       'https://subgraph.satsuma-prod.com/1c6a44a9ed6e/pgs-team--611591/singularity-subgraph/api',
     explorerUrl: {
       tx: 'https://etherscan.io/tx/',
@@ -46,20 +38,10 @@ export const networkConfig: { [chainId: number]: NetworkConfig } = {
     priceOracle: '0x0AdDd25a91563696D8567Df78D5A01C9a991F9B8',
     ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
     nativeWrapper: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
-
-    stakingOperator: '0xF4f1D4F28Be82D81135c13D255452B8325B585B0',
-    stakingAssetManager: '0xB1CC5D9227323330E8a58e891c123B38D03f0BAA',
-
-    complianceManager: '0x7e230aa15db2C0B6E293abBa3e0d278f4B612fC4',
-    merkleTreeOperator: '0x0e2aCb73EBB02bd4099d495bcb96F7522F84ddb7',
-    darkpoolAssetManager: '0xf7C40b5057a1D1a3d58B02BCdb125E63ef380564',
-    nftAssetManager: '0x143242Ff430620a3FA3f9fEaB576050fb20C63BB',
-    sablierDynamicAssetManager: '0x1f58F7b50266599524620e7047425B1359F10bdd',
-    sablierLinearAssetManager: '0xe397804A9Ff78329997A2b07aF91D484f78e77Be',
-    oTCSwapAssetManager: '0xcbFA6BB3eb4Bd9BF97866baE75FfB62f3aE897c0',
-    batchJoinSplitAssetManager: '0x0',
-    darkPoolSwapAssetManager: '0x0',
-    drakpoolSubgraphUrl:
+    merkleTreeOperator: '0x0', //FIXME
+    darkSwapAssetManager: '0x0', //FIXME
+    darkSwapFeeAssetManager: '0x0', //FIXME
+    drakSwapSubgraphUrl:
       'https://subgraph.satsuma-prod.com/1c6a44a9ed6e/pgs-team--611591/singularity-arb-subgraph/api',
     explorerUrl: {
       tx: 'https://arbiscan.io/tx/',
@@ -67,49 +49,15 @@ export const networkConfig: { [chainId: number]: NetworkConfig } = {
       block: 'https://arbiscan.io/block/',
     },
   },
-  [ChainId.BounceBit]: {
-    priceOracle: '0x0',
-    ethAddress: '0x0000000000000000000000000000000000000000',
-    nativeWrapper: '0xF4c20e5004C6FDCDdA920bDD491ba8C98a9c5863',
-
-    stakingOperator: '0x4d459dDe25707CA353De15CC3B85b7C2e4bb380c',
-    stakingAssetManager: '0xe6B0a94e1eA206B122a11a30dA7FB9ADaA12ef42',
-
-    complianceManager: '0x1Fe002A6E413C70D5CB8477cDaA0422fc7611fCc',
-    merkleTreeOperator: '0x159F3668c72BBeCdF1fb31beeD606Ec9649654eB',
-    darkpoolAssetManager: '0x722133fBb559E2849e3402De3279Bd3059b7fe4E',
-    nftAssetManager: '0x0f3778d690090E6dfd0fc5948b23A55A587C558E',
-    sablierDynamicAssetManager: '0x0',
-    sablierLinearAssetManager: '0x0',
-    oTCSwapAssetManager: '0xAa5e02284d1Fd0f6C12AFBDABc28Ed5aC5a6474b',
-    batchJoinSplitAssetManager: '0x0',
-    darkPoolSwapAssetManager: '0x0',
-
-    drakpoolSubgraphUrl:
-      'https://bb.subgraph.thesingularity.network/subgraphs/name/singularity/',
-    explorerUrl: {
-      tx: 'https://bbscan.io/tx/',
-      address: 'https://bbscan.io/address/',
-      block: 'https://bbscan.io/block/',
-    },
-  },
   [ChainId.BASE]: {
     priceOracle: '0xf224a25453D76A41c4427DD1C05369BC9f498444',
     ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
     nativeWrapper: '0x4200000000000000000000000000000000000006',
-    complianceManager: '0xFa368E046B4051582662f7d1C033756dB55058cF',
-    merkleTreeOperator: '0xdcd767f6f877B4Ef85d631f23e51ff3a2BCC9378',
-    darkpoolAssetManager: '0x84eb120A35802460484015e6748375369e40468a',
-    nftAssetManager: '0xC4e979C922E93938dBaBb6e1623a19cbc6132489',
-    stakingOperator: '0xfdA33b941E6C014bD079C6917b815EFA58976f37',
-    stakingAssetManager: '0xa3d27E1Ca5057372478011FB781479B8A1fF7AA3',
-    sablierDynamicAssetManager: '0xc98b275a309F187b691e025B956e03603e12b420',
-    sablierLinearAssetManager: '0x4d459dDe25707CA353De15CC3B85b7C2e4bb380c',
-    oTCSwapAssetManager: '0x3D76Fd85FCc2593970d22Aa34bcC4c5444c57c9D',
-    batchJoinSplitAssetManager: '0x0',
-    darkPoolSwapAssetManager: '0x0',
+    merkleTreeOperator: '0x0', //FIXME
+    darkSwapAssetManager: '0x0', //FIXME
+    darkSwapFeeAssetManager: '0x0', //FIXME
 
-    drakpoolSubgraphUrl: 'https://subgraph.satsuma-prod.com/1c6a44a9ed6e/pgs-team--611591/singularity-base-subgraph/api',
+    drakSwapSubgraphUrl: 'https://subgraph.satsuma-prod.com/1c6a44a9ed6e/pgs-team--611591/singularity-base-subgraph/api',
     explorerUrl: {
       tx: 'https://basescan.org/tx/',
       address: 'https://basescan.org/address/',
@@ -121,67 +69,14 @@ export const networkConfig: { [chainId: number]: NetworkConfig } = {
     ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
     nativeWrapper: '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14',
 
-    stakingOperator: '0x8D58187C503dea084F5734417E12407D72de2dB0',
-    stakingAssetManager: '0xccb9edf607a3554735e41283B0bfC29BAed66C42',
-
-    complianceManager: '0x8bC3D406A06D7cCC7f8F46AE4b307E21B2FE7cB1',
-    merkleTreeOperator: '0x64EF10540Ced49F2bA89D6F4680eE5b64224B96c',
-    darkpoolAssetManager: '0x03bCF6421a6042Ae262874E428fEd4bB1f9A862f',
-    nftAssetManager: '0x310c5d768C7F01f68789DE84223725203d0a162F',
-    sablierDynamicAssetManager: '0x54Ea206f4DF7676A41Df9e44778B5Af4fB0B7a58',
-    sablierLinearAssetManager: '0x6667889310308C9537B53ea64B01036D73B299Fb',
-    oTCSwapAssetManager: '0xD3070435b0cF2D8D31Ea5A45cF32805e540D9407',
-    batchJoinSplitAssetManager: '0x31816E27809fdc3cF73539d761133a301beEb9B0',
-    darkPoolSwapAssetManager: '0x802ae625C2bdac1873B8bbb709679CC401F57abc',
-    drakpoolSubgraphUrl: 'https://subgraph.satsuma-prod.com/1c6a44a9ed6e/pgs-team--611591/singularity-sepolia-subgraph/api',
+    merkleTreeOperator: '0x0', //FIXME
+    darkSwapAssetManager: '0x0', //FIXME
+    darkSwapFeeAssetManager: '0x0', //FIXME
+    drakSwapSubgraphUrl: 'https://subgraph.satsuma-prod.com/1c6a44a9ed6e/pgs-team--611591/singularity-sepolia-subgraph/api',
     explorerUrl: {
       tx: 'https://sepolia.etherscan.io/tx/',
       address: 'https://sepolia.etherscan.io/address/',
       block: 'https://sepolia.etherscan.io/block/',
-    },
-  },
-  [ChainId.BounceBitTestnet]: {
-    priceOracle: '0x0',
-    ethAddress: '0x0000000000000000000000000000000000000000',
-    nativeWrapper: '0x0',
-    stakingOperator: '0xEF8F70bB29DEAd5CEcaE26C6Cb19B987475B3e48',
-    stakingAssetManager: '0x30cAA40e8D8d00fEAFc05732Ed75856f5eC7F89c',
-    complianceManager: '0x1Fa7Cb4925086128f3bb9e26761C9C75dbAC3CD1',
-    merkleTreeOperator: '0x40FecD96e94c3c2eE0Fb8bE5cE7073Bb3fB46F51',
-    darkpoolAssetManager: '0xf21f124F395271e8435A93063AE2AD74829D7b69',
-    nftAssetManager: '0x0',
-    sablierDynamicAssetManager: '0x0',
-    sablierLinearAssetManager: '0x0',
-    oTCSwapAssetManager: '0x0',
-    batchJoinSplitAssetManager: '0x0',
-    darkPoolSwapAssetManager: '0x0',
-    drakpoolSubgraphUrl: '',
-    explorerUrl: {
-      tx: 'https://testnet.bbscan.io/tx/',
-      address: 'https://testnet.bbscan.io/address/',
-      block: 'https://testnet.bbscan.io/block/',
-    },
-  },
-  [ChainId.EMCTestnet]: {
-    priceOracle: '0x97cEf218884E6078166d436AedE081eb97Bb65c6',
-    ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
-    nativeWrapper: '0x87f203549B84B8eb65DC22F5490B44956a4fFaC5',
-    stakingOperator: '0x0',
-    stakingAssetManager: '0x0',
-    complianceManager: '0xa5Ef7D6ad73fafE33eb25e0355F7115925f43E4F',
-    merkleTreeOperator: '0x152f1051c8D37Fba9A362Fc9b32a0eeF8496202F',
-    darkpoolAssetManager: '0x1115b84c9359FCD5D1DF8146F1Fd17828aaC07c2',
-    nftAssetManager: '0xf7C40b5057a1D1a3d58B02BCdb125E63ef380564',
-    sablierDynamicAssetManager: '0x0',
-    sablierLinearAssetManager: '0x0',
-    oTCSwapAssetManager: '0x9D4746F8f2364da04fF47d729072F71b742726aA',
-    batchJoinSplitAssetManager: '0x0',
-    darkPoolSwapAssetManager: '0x0',
-    drakpoolSubgraphUrl: '',
-    explorerUrl: {
-      tx: 'https://testnet.emcscan.com/tx/',
-      address: 'https://testnet.emcscan.com/address/',
-      block: 'https://testnet.emcscan.com/block/',
     },
   },
   [ChainId.HARDHAT]: {
@@ -189,17 +84,10 @@ export const networkConfig: { [chainId: number]: NetworkConfig } = {
     ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
     nativeWrapper: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
     merkleTreeOperator: hardhatContracts.merkleTreeOperator as HexData,
-    complianceManager: hardhatContracts.accessPortal as HexData,
-    darkpoolAssetManager: hardhatContracts.darkpoolAssetManager as HexData,
-    nftAssetManager: hardhatContracts.nftAssetManager as HexData,
-    stakingOperator: hardhatContracts.stakingOperator as HexData,
-    stakingAssetManager: hardhatContracts.stakingAssetManager as HexData,
-    sablierDynamicAssetManager: hardhatContracts.sablierDynamicAssetManager as HexData,
-    sablierLinearAssetManager: hardhatContracts.sablierLinearAssetManager as HexData,
-    oTCSwapAssetManager: hardhatContracts.oTCSwapAssetManager as HexData,
-    batchJoinSplitAssetManager: hardhatContracts.batchJoinSplitAssetManager as HexData,
-    darkPoolSwapAssetManager: hardhatContracts.darkPoolSwapAssetManager as HexData,
-    drakpoolSubgraphUrl:
+    darkSwapAssetManager: hardhatContracts.darkSwapAssetManager as HexData,
+    darkSwapFeeAssetManager: hardhatContracts.darkSwapFeeAssetManager as HexData,
+
+    drakSwapSubgraphUrl:
       'https://app.dev.portalgate.me:8080/subgraphs/name/singularity/',
     explorerUrl: {
       tx: 'https://sepolia.etherscan.io/tx/',
@@ -211,18 +99,11 @@ export const networkConfig: { [chainId: number]: NetworkConfig } = {
     priceOracle: '0x0AdDd25a91563696D8567Df78D5A01C9a991F9B8',
     ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
     nativeWrapper: '0x82af49447d8a07e3bd95bd0d56f35241523fbab1',
-    complianceManager: hardhatArbContracts.accessPortal as HexData,
     merkleTreeOperator: hardhatArbContracts.merkleTreeOperator as HexData,
-    darkpoolAssetManager: hardhatArbContracts.darkpoolAssetManager as HexData,
-    nftAssetManager: hardhatArbContracts.nftAssetManager as HexData,
-    stakingOperator: hardhatArbContracts.stakingOperator as HexData,
-    stakingAssetManager: hardhatArbContracts.stakingAssetManager as HexData,
-    sablierDynamicAssetManager: hardhatArbContracts.sablierDynamicAssetManager as HexData,
-    sablierLinearAssetManager: hardhatArbContracts.sablierLinearAssetManager as HexData,
-    oTCSwapAssetManager: hardhatArbContracts.oTCSwapAssetManager as HexData,
-    batchJoinSplitAssetManager: hardhatArbContracts.batchJoinSplitAssetManager as HexData,
-    darkPoolSwapAssetManager: hardhatArbContracts.darkPoolSwapAssetManager as HexData,
-    drakpoolSubgraphUrl:
+    darkSwapAssetManager: hardhatArbContracts.darkSwapAssetManager as HexData,
+    darkSwapFeeAssetManager: hardhatArbContracts.darkSwapFeeAssetManager as HexData,
+
+    drakSwapSubgraphUrl:
       'https://app.dev.portalgate.me:48080/subgraphs/name/singularityArb/',
     explorerUrl: {
       tx: 'https://arbiscan.io/tx/',
