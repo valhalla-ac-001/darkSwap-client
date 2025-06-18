@@ -1,5 +1,5 @@
 import { calcNullifier, DarkSwapMessage, DarkSwapNote,DarkSwapOrderNote } from '@thesingularitynetwork/darkswap-sdk';
-import { deserializeDarkSwapMessage, getNoteOnChainStatusByPublicKey, getNoteOnChainStatusBySignature, hexlify32, ProSwapService, NoteOnChainStatus, serializeDarkSwapMessage, generateProSwapMessage } from '@thesingularitynetwork/darkswap-sdk';
+import { deserializeDarkSwapMessage, getNoteOnChainStatusByPublicKey, getNoteOnChainStatusBySignature, hexlify32, ProSwapService, NoteOnChainStatus, serializeDarkSwapMessage } from '@thesingularitynetwork/darkswap-sdk';
 import { BooknodeService } from '../common/booknode.service';
 import { DarkSwapContext } from '../common/context/darkSwap.context';
 import { DatabaseService } from '../common/db/database.service';
@@ -94,14 +94,9 @@ export class SettlementService {
     const {context, swapInNote, changeNote} = await proSwapService.prepare(
       darkSwapContext.walletAddress,
       {...orderNote, feeRatio: BigInt(orderInfo.feeRatio)},
-      matchedOrderDto.aliceMatchedAmount,
-      matchedOrderDto.bobMatchedAmount,
       bobSwapMessage.address,
       bobSwapMessage,
       darkSwapContext.signature);
-
-
-
 
     this.noteService.addNotes([swapInNote, changeNote], darkSwapContext,false);
     this.dbService.updateOrderIncomingNoteCommitment(orderId, swapInNote.note);
@@ -159,6 +154,8 @@ export class SettlementService {
 
   async bobConfirm(orderId: string) {
     const orderInfo = await this.dbService.getOrderByOrderId(orderId);
+    const assetPair = await this.dbService.getAssetPairById(orderInfo.assetPairId, orderInfo.chainId);
+
     const rawNote = await this.dbService.getNoteByCommitment(orderInfo.noteCommitment);
     const orderNote = {
       note: rawNote.note,
@@ -167,20 +164,28 @@ export class SettlementService {
       amount: rawNote.amount,
       feeRatio: BigInt(orderInfo.feeRatio)
     } as DarkSwapOrderNote;
+    
+    const swapInAsset = orderNote.asset === assetPair.quoteAddress? assetPair.baseAddress : assetPair.quoteAddress;
 
     const darkSwapContext = await DarkSwapContext.createDarkSwapContext(orderInfo.chainId, orderInfo.wallet);
-    const { incomingNote, bobSwapMessage } = await generateProSwapMessage(darkSwapContext.walletAddress, )
+    const {darkSwapMessage, swapInNote} = await ProSwapService.prepareProSwapMessageForBob(
+      darkSwapContext.walletAddress,
+      orderNote,
+      BigInt(orderInfo.amountIn),
+      swapInAsset,
+      darkSwapContext.signature
+    );
 
-    this.noteService.addNote(incomingNote, darkSwapContext,false);
+    this.noteService.addNote(swapInNote, darkSwapContext,false);
 
-    const takerConfirmDto = {
+    const bobConfirmDto = {
       chainId: orderInfo.chainId,
       wallet: orderInfo.wallet,
       orderId: orderId,
-      swapMessage: serializeDarkSwapMessage(bobSwapMessage)
+      swapMessage: serializeDarkSwapMessage(darkSwapMessage)
     } as bobConfirmDto;
 
-    await this.booknodeService.confirmOrder(takerConfirmDto);
+    await this.booknodeService.confirmOrder(bobConfirmDto);
     console.log('Order confirmed for ', orderId);
     await this.orderEventService.logOrderStatusChange(orderId, orderInfo.wallet, orderInfo.chainId, OrderStatus.MATCHED);
   }
