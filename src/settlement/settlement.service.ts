@@ -5,6 +5,7 @@ import { DarkSwapContext } from '../common/context/darkSwap.context';
 import { DatabaseService } from '../common/db/database.service';
 import { NoteDto } from '../common/dto/note.dto';
 import { NoteService } from '../common/note.service';
+import { NotesJoinService } from '../common/notesJoin.service';
 import { SubgraphService } from '../common/subgraph.service';
 import { getConfirmations } from '../config/networkConfig';
 import { DarkSwapException } from '../exception/darkSwap.exception';
@@ -19,6 +20,7 @@ export class SettlementService {
   private dbService: DatabaseService;
   private booknodeService: BooknodeService;
   private noteService: NoteService;
+  private noteJoinService: NotesJoinService;
   private orderEventService: OrderEventService;
   private subgraphService: SubgraphService;
   private walletMutexService: WalletMutexService;
@@ -26,6 +28,7 @@ export class SettlementService {
     this.dbService = DatabaseService.getInstance();
     this.booknodeService = BooknodeService.getInstance();
     this.noteService = NoteService.getInstance();
+    this.noteJoinService = NotesJoinService.getInstance(); 
     this.orderEventService = OrderEventService.getInstance();
     this.subgraphService = SubgraphService.getInstance();
     this.walletMutexService = WalletMutexService.getInstance();
@@ -66,12 +69,12 @@ export class SettlementService {
 
     const rawNote = await this.dbService.getNoteByCommitment(orderInfo.noteCommitment);
     const orderNote = this.noteDtoToNote(rawNote);
-    const makerNoteOnChainStatus = await getNoteOnChainStatusBySignature(
+    const aliceNoteOnChainStatus = await getNoteOnChainStatusBySignature(
       darkSwapContext.darkSwap,
       orderNote,
       darkSwapContext.signature
     );
-    if (makerNoteOnChainStatus != NoteOnChainStatus.ACTIVE) {
+    if (aliceNoteOnChainStatus != NoteOnChainStatus.ACTIVE) {
       const aliceNullifier = orderInfo.nullifier;
       const bobNullifier = hexlify32(calcNullifier(bobSwapMessage.orderNote.rho, bobSwapMessage.publicKey));
       const subgraphData = await this.subgraphService.getSwapTxByNullifiers(orderInfo.chainId, aliceNullifier, bobNullifier);
@@ -119,6 +122,7 @@ export class SettlementService {
     for (const note of aliceInNotes) {
       if (note && note.amount !== 0n) {
         await this.noteService.setNoteActive(note, darkSwapContext, txHash);
+        await this.noteJoinService.getCurrentBalanceNote(darkSwapContext,note.asset,[note]);
       }
     }
 
@@ -126,17 +130,19 @@ export class SettlementService {
     await this.booknodeService.settleOrder(order, txHash);
     console.log('Order settled for ', order.orderId);
     await this.orderEventService.logOrderStatusChange(order.orderId, order.wallet, order.chainId, OrderStatus.SETTLED);
+
   }
 
   async bobPostSettlement(orderId: string, txHash: string) {
     //TODO 
     const orderInfo = await this.dbService.getOrderByOrderId(orderId);
     const outgoingNote = await this.dbService.getNoteByCommitment(orderInfo.noteCommitment);
-    const darkPoolContext = await DarkSwapContext.createDarkSwapContext(orderInfo.chainId, orderInfo.wallet);
-    this.noteService.setNoteUsed(this.noteDtoToNote(outgoingNote), darkPoolContext);
+    const darkSwapContext = await DarkSwapContext.createDarkSwapContext(orderInfo.chainId, orderInfo.wallet);
+    this.noteService.setNoteUsed(this.noteDtoToNote(outgoingNote), darkSwapContext);
     if (orderInfo.incomingNoteCommitment) {
       const incomingNote = await this.dbService.getNoteByCommitment(orderInfo.incomingNoteCommitment);
       await this.dbService.updateNoteTransactionByWalletAndNoteCommitment(orderInfo.wallet, orderInfo.chainId, incomingNote.note, txHash);
+      await this.noteJoinService.getCurrentBalanceNote(darkSwapContext, incomingNote.asset, [this.noteDtoToNote(incomingNote)]);
     }
     console.log('Post settlement for ', orderId);
     await this.orderEventService.logOrderStatusChange(orderId, orderInfo.wallet, orderInfo.chainId, OrderStatus.SETTLED);

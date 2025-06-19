@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/
 import { ApiResponse } from '@nestjs/swagger';
 import { DarkSwapContext } from '../common/context/darkSwap.context';
 import { AssetPairDto } from '../common/dto/assetPair.dto';
-import { ApiGenericArrayResponse, ApiGenericResponse, DarkPoolSimpleResponse } from '../common/response.interface';
+import { ApiGenericArrayResponse, ApiGenericResponse, DarkSwapSimpleResponse } from '../common/response.interface';
 import { CancelOrderDto } from './dto/cancelOrder.dto';
 import { OrderDto } from './dto/order.dto';
 import { UpdatePriceDto } from './dto/updatePrice.dto';
@@ -18,7 +18,7 @@ export class OrderController {
   @ApiResponse({
     status: 200,
     description: 'Order created',
-    type: DarkPoolSimpleResponse
+    type: DarkSwapSimpleResponse
   })
   async createOrder(@Body() orderDto: OrderDto): Promise<void> {
     if (orderDto.orderId) {
@@ -45,7 +45,7 @@ export class OrderController {
   @ApiResponse({
     status: 200,
     description: 'Order canceled',
-    type: DarkPoolSimpleResponse
+    type: DarkSwapSimpleResponse
   })
   async cancelOrder(@Body() cancelOrderDto: CancelOrderDto) {
     const context = await DarkSwapContext.createDarkSwapContext(cancelOrderDto.chainId, cancelOrderDto.wallet)
@@ -56,7 +56,7 @@ export class OrderController {
   @ApiResponse({
     status: 200,
     description: 'Order price updated',
-    type: DarkPoolSimpleResponse
+    type: DarkSwapSimpleResponse
   })
   async updateOrderPrice(@Body() updatePriceDto: UpdatePriceDto) {
     await this.orderService.updateOrderPrice(updatePriceDto);

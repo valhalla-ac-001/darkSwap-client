@@ -219,8 +219,8 @@ export class OrderService {
   async cancelOrderByNotificaion(orderId: string) {
 
     const order = await this.dbService.getOrderByOrderId(orderId);
-    const darkPoolContext = await DarkSwapContext.createDarkSwapContext(order.chainId, order.wallet);
-    await this.cancelOrder(orderId, darkPoolContext, true);
+    const darkSwapContext = await DarkSwapContext.createDarkSwapContext(order.chainId, order.wallet);
+    await this.cancelOrder(orderId, darkSwapContext, true);
   }
 
   async getOrdersByStatusAndPage(status: number, page: number, limit: number): Promise<OrderDto[]> {

@@ -34,13 +34,13 @@ export class SubgraphService {
 
         const data = await response.json();
 
-        if (!data || !data.data || !data.data.darkPoolSwaps || data.data.darkPoolSwaps.length === 0) {
+        if (!data || !data.data || !data.data.darkSwaps || data.data.darkSwaps.length === 0) {
             return null;
         }
 
         return {
-            txHash: data.data.darkPoolSwaps[0].transactionHash,
-            aliceInNote: data.data.darkPoolSwaps[0].aliceInNote,
+            txHash: data.data.darkSwaps[0].transactionHash,
+            aliceInNote: data.data.darkSwaps[0].aliceInNote,
         };
     }
 }

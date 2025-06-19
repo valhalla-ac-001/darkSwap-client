@@ -2,7 +2,7 @@ import { Type } from '@nestjs/common';
 import { applyDecorators } from '@nestjs/common';
 import { ApiExtraModels, ApiOkResponse, ApiResponseProperty, getSchemaPath } from '@nestjs/swagger';
 
-export class DarkPoolResponse<T> {
+export class DarkSwapResponse<T> {
   @ApiResponseProperty()
   code: number;
   @ApiResponseProperty()
@@ -13,7 +13,7 @@ export class DarkPoolResponse<T> {
   error: string;
 }
 
-export class DarkPoolSimpleResponse {
+export class DarkSwapSimpleResponse {
   @ApiResponseProperty({
     type: Number,
     example: 200
@@ -33,11 +33,11 @@ export class DarkPoolSimpleResponse {
 
 export const ApiGenericResponse = <T extends Type<unknown>>(dataDto: T) =>
   applyDecorators(
-    ApiExtraModels(DarkPoolResponse, dataDto),
+    ApiExtraModels(DarkSwapResponse, dataDto),
     ApiOkResponse({
       schema: {
         allOf: [
-          { $ref: getSchemaPath(DarkPoolResponse) },
+          { $ref: getSchemaPath(DarkSwapResponse) },
           {
             properties: {
               data: {
@@ -52,11 +52,11 @@ export const ApiGenericResponse = <T extends Type<unknown>>(dataDto: T) =>
 
 export const ApiGenericArrayResponse = <T extends Type<unknown>>(dataDto: T) =>
   applyDecorators(
-    ApiExtraModels(DarkPoolResponse, dataDto),
+    ApiExtraModels(DarkSwapResponse, dataDto),
     ApiOkResponse({
       schema: {
         allOf: [
-          { $ref: getSchemaPath(DarkPoolResponse) },
+          { $ref: getSchemaPath(DarkSwapResponse) },
           {
             properties: {
               data: {

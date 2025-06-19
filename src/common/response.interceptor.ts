@@ -6,10 +6,10 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { DarkPoolResponse } from './response.interface';
+import { DarkSwapResponse } from './response.interface';
 
 @Injectable()
-export class ResponseInterceptor<T> implements NestInterceptor<T, DarkPoolResponse<T>> {
+export class ResponseInterceptor<T> implements NestInterceptor<T, DarkSwapResponse<T>> {
     intercept(context: ExecutionContext, next: CallHandler<T>): Observable<any> {
         return next.handle().pipe(
             map((data) => ({
