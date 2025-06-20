@@ -1514,16 +1514,17 @@
   resolved "https://registry.yarnpkg.com/@stablelib/wipe/-/wipe-1.0.1.tgz#d21401f1d59ade56a62e139462a97f104ed19a36"
   integrity sha512-WfqfX/eXGiAd3RJe4VU2snh/ZPwtSjLG4ynQ/vYzvghTh7dHFcI1wl+nrkWG6lGhukOxOsUHfv8dUXr58D0ayg==
 
-"@thesingularitynetwork/darkswap-sdk@^0.1.12":
-  version "0.1.12"
-  resolved "https://registry.yarnpkg.com/@thesingularitynetwork/darkswap-sdk/-/darkswap-sdk-0.1.12.tgz#7b8c882af589940cc4676701ddedc81efb3e5151"
-  integrity sha512-DMhcar7HHdiy0sMVRJmAN7/wt7wsk3o85LopuZMPsnLG96LJgTK7U7jMXAzf441e1EmJ0sltvNTw8whVskxwZA==
+"@thesingularitynetwork/darkswap-sdk@^0.1.17":
+  version "0.1.17"
+  resolved "https://registry.yarnpkg.com/@thesingularitynetwork/darkswap-sdk/-/darkswap-sdk-0.1.17.tgz#b539a60962996cbd87f88a94e98fa4728c41979b"
+  integrity sha512-xRWgIkxhfnPBdEIRePEoW6a/hysS7Kc4CYdE9XvilWFlzvgwn7mZcCjjg/iDwbfHqRw89Ov9vrcydnv/v0zwLQ==
   dependencies:
     "@aztec/bb.js" "^0.84.0"
     "@aztec/foundation" "^0.84.0"
     "@noir-lang/noir_js" "^1.0.0-beta.3"
     "@noir-lang/noir_wasm" "^1.0.0-beta.3"
     "@noir-lang/types" "^1.0.0-beta.3"
+    crypto-js "^4.2.0"
     ethers "^6.14.3"
 
 "@tokenizer/inflate@^0.2.7":
@@ -2970,6 +2971,11 @@ cross-spawn@^7.0.0, cross-spawn@^7.0.3, cross-spawn@^7.0.5:
     path-key "^3.1.0"
     shebang-command "^2.0.0"
     which "^2.0.1"
+
+crypto-js@^4.2.0:
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/crypto-js/-/crypto-js-4.2.0.tgz#4d931639ecdfd12ff80e8186dba6af2c2e856631"
+  integrity sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q==
 
 data-uri-to-buffer@^4.0.0:
   version "4.0.1"

@@ -5,10 +5,15 @@ import { AccountService } from './account.service';
 import { MyAssetsDto } from './dto/asset.dto';
 import { DarkSwapContext } from '../common/context/darkSwap.context';
 import { SyncAssetDto } from './dto/syncAsset.dto';
+import { WalletMutexService } from '../common/mutex/walletMutex.service';
+
 
 @Controller('account')
 export class AccountController {
-  constructor(private readonly accountService: AccountService) { }
+  private walletMutexService: WalletMutexService;
+  constructor(private readonly accountService: AccountService) {
+    this.walletMutexService = WalletMutexService.getInstance();
+  }
 
   @Get()
   async getWallets(): Promise<string[]> {
@@ -18,19 +23,28 @@ export class AccountController {
   @Post('/getBalance')
   @ApiGenericResponse(MyAssetsDto)
   async getAssetsByChainIdAndWallet(@Body() baseDto: BaseDto): Promise<MyAssetsDto> {
-    return this.accountService.getAssetsByChainId(baseDto.wallet, baseDto.chainId);
+    const mutex = this.walletMutexService.getMutex(baseDto.wallet.toLowerCase());
+    return await mutex.runExclusive(async () => {
+      return this.accountService.getAssetsByChainId(baseDto.wallet, baseDto.chainId);
+    });
   }
 
 
   @Post('syncAssets')
   async syncAssets(@Body() baseDto: BaseDto): Promise<void> {
     const context = await DarkSwapContext.createDarkSwapContext(baseDto.chainId, baseDto.wallet)
-    return this.accountService.syncAssets(context, baseDto.wallet, baseDto.chainId);
+    const mutex = this.walletMutexService.getMutex(context.walletAddress.toLowerCase());
+    await mutex.runExclusive(async () => {
+      return this.accountService.syncAssets(context, baseDto.wallet, baseDto.chainId);
+    });
   }
 
   @Post('syncOneAsset')
   async syncOneAsset(@Body() syncAssetDto: SyncAssetDto): Promise<void> {
     const context = await DarkSwapContext.createDarkSwapContext(syncAssetDto.chainId, syncAssetDto.wallet)
-    return this.accountService.syncOneAsset(context, syncAssetDto.wallet, syncAssetDto.chainId, syncAssetDto.asset);
+    const mutex = this.walletMutexService.getMutex(context.walletAddress.toLowerCase());
+    await mutex.runExclusive(async () => {
+      return this.accountService.syncOneAsset(context, syncAssetDto.wallet, syncAssetDto.chainId, syncAssetDto.asset);
+    });
   }
 }

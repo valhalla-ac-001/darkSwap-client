@@ -4,13 +4,16 @@ import { TokenService } from '../common/token/token.service';
 import { BasicService } from './basic.service';
 import { DepositDto } from './dto/deposit.dto';
 import { WithdrawDto } from './dto/withdraw.dto';
-import { BaseDto } from '../common/dto/base.dto';
 import { ApiResponse } from '@nestjs/swagger';
 import { DarkSwapSimpleResponse } from '../common/response.interface';
+import { WalletMutexService } from '../common/mutex/walletMutex.service';
 
 @Controller('basic')
 export class BasicController {
-  constructor(private readonly basicService: BasicService) { }
+  private walletMutexService: WalletMutexService;
+  constructor(private readonly basicService: BasicService) { 
+    this.walletMutexService = WalletMutexService.getInstance();
+  }
 
   @Post('deposit')
   @ApiResponse({
@@ -21,7 +24,10 @@ export class BasicController {
   async deposit(@Body() depositDto: DepositDto) {
     const context = await DarkSwapContext.createDarkSwapContext(depositDto.chainId, depositDto.wallet)
     const token = await TokenService.getTokenByChainId(depositDto.chainId, depositDto.asset);
-    await this.basicService.deposit(context, token, BigInt(depositDto.amount));
+    const mutex = this.walletMutexService.getMutex(context.walletAddress.toLowerCase());
+    await mutex.runExclusive(async () => { 
+      await this.basicService.deposit(context, token, BigInt(depositDto.amount));
+    });
   }
 
   @Post('withdraw')
@@ -33,6 +39,9 @@ export class BasicController {
   async withdraw(@Body() withdrawDto: WithdrawDto) {
     const context = await DarkSwapContext.createDarkSwapContext(withdrawDto.chainId, withdrawDto.wallet)
     const token = await TokenService.getTokenByChainId(withdrawDto.chainId, withdrawDto.asset);
-    await this.basicService.withdraw(context, token, BigInt(withdrawDto.amount));
+    const mutex = this.walletMutexService.getMutex(context.walletAddress.toLowerCase());
+    await mutex.runExclusive(async () => {
+      await this.basicService.withdraw(context, token, BigInt(withdrawDto.amount));
+    });
   }
 }

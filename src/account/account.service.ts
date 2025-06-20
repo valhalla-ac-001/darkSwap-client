@@ -116,7 +116,8 @@ export class AccountService {
               note: note.note,
               rho: note.rho,
               amount: note.amount,
-              asset: note.asset
+              asset: note.asset,
+              address: note.wallet
             },
             darkSwapContext.signature);
           if (onChainStatus == NoteOnChainStatus.ACTIVE && note.status != NoteStatus.ACTIVE) {
@@ -147,7 +148,8 @@ export class AccountService {
               note: note.note,
               rho: note.rho,
               amount: note.amount,
-              asset: note.asset
+              asset: note.asset,
+              address: note.wallet
             },
             darkSwapContext.signature);
           if (onChainStatus == NoteOnChainStatus.ACTIVE && note.status != NoteStatus.ACTIVE) {

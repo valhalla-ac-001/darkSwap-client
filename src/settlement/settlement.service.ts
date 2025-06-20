@@ -13,7 +13,7 @@ import { OrderDto } from '../orders/dto/order.dto';
 import { OrderEventService } from '../orders/orderEvent.service';
 import { OrderDirection, OrderStatus } from '../types';
 import { bobConfirmDto } from './dto/bobConfirm.dto';
-import { WalletMutexService } from '../common/mutex/walletMutex.service';
+
 export class SettlementService {
 
   private static instance: SettlementService;
@@ -23,7 +23,6 @@ export class SettlementService {
   private noteJoinService: NotesJoinService;
   private orderEventService: OrderEventService;
   private subgraphService: SubgraphService;
-  private walletMutexService: WalletMutexService;
   private constructor() {
     this.dbService = DatabaseService.getInstance();
     this.booknodeService = BooknodeService.getInstance();
@@ -31,7 +30,6 @@ export class SettlementService {
     this.noteJoinService = NotesJoinService.getInstance(); 
     this.orderEventService = OrderEventService.getInstance();
     this.subgraphService = SubgraphService.getInstance();
-    this.walletMutexService = WalletMutexService.getInstance();
   }
 
   public static getInstance(): SettlementService {
@@ -54,12 +52,12 @@ export class SettlementService {
       rho: noteDto.rho,
       asset: noteDto.asset,
       amount: noteDto.amount,
+      address: noteDto.wallet,
     } as DarkSwapNote;
   }
 
-  async aliceSwap(orderId: string) {
-    const orderInfo = await this.dbService.getOrderByOrderId(orderId);
-    await this.orderEventService.logOrderStatusChange(orderId, orderInfo.wallet, orderInfo.chainId, OrderStatus.MATCHED);
+  async aliceSwap(orderInfo: OrderDto) {
+    await this.orderEventService.logOrderStatusChange(orderInfo.orderId, orderInfo.wallet, orderInfo.chainId, OrderStatus.MATCHED);
 
     const matchedOrderDto = await this.booknodeService.getMatchedOrderDetails(orderInfo);
     const bobSwapMessage = deserializeDarkSwapMessage(matchedOrderDto.bobSwapMessage);
@@ -79,7 +77,7 @@ export class SettlementService {
       const bobNullifier = hexlify32(calcNullifier(bobSwapMessage.orderNote.rho, bobSwapMessage.publicKey));
       const subgraphData = await this.subgraphService.getSwapTxByNullifiers(orderInfo.chainId, aliceNullifier, bobNullifier);
       if (subgraphData) {
-        console.log('Order settle recovered for ', orderId);
+        console.log('Order settle recovered for ', orderInfo.orderId);
         const incomingNoteDto = await this.dbService.getNoteByCommitment(BigInt(subgraphData.aliceInNote).toString());
         const incomingNote = this.noteDtoToNote(incomingNoteDto);
         await this.updateAliceOrderData(orderInfo, {...orderNote, feeRatio: BigInt(orderInfo.feeRatio)}, [incomingNote], darkSwapContext, subgraphData.txHash);
@@ -102,12 +100,10 @@ export class SettlementService {
       darkSwapContext.signature);
 
     this.noteService.addNotes([swapInNote, changeNote], darkSwapContext,false);
-    this.dbService.updateOrderIncomingNoteCommitment(orderId, swapInNote.note);
+    this.dbService.updateOrderIncomingNoteCommitment(orderInfo.orderId, swapInNote.note);
 
-    const mutex = this.walletMutexService.getMutex(darkSwapContext.walletAddress.toLowerCase());
-    const tx = await mutex.runExclusive(async () => {
-      return await proSwapService.execute(context);
-    });
+    const tx = await proSwapService.execute(context);
+    
     const receipt = await darkSwapContext.darkSwap.provider.waitForTransaction(tx, getConfirmations(darkSwapContext.chainId));
     if (receipt.status !== 1) {
       throw new DarkSwapException("pro swap failed with tx hash " + tx);
@@ -133,9 +129,8 @@ export class SettlementService {
 
   }
 
-  async bobPostSettlement(orderId: string, txHash: string) {
+  async bobPostSettlement(orderInfo: OrderDto, txHash: string) {
     //TODO 
-    const orderInfo = await this.dbService.getOrderByOrderId(orderId);
     const outgoingNote = await this.dbService.getNoteByCommitment(orderInfo.noteCommitment);
     const darkSwapContext = await DarkSwapContext.createDarkSwapContext(orderInfo.chainId, orderInfo.wallet);
     this.noteService.setNoteUsed(this.noteDtoToNote(outgoingNote), darkSwapContext);
@@ -144,22 +139,20 @@ export class SettlementService {
       await this.dbService.updateNoteTransactionByWalletAndNoteCommitment(orderInfo.wallet, orderInfo.chainId, incomingNote.note, txHash);
       await this.noteJoinService.getCurrentBalanceNote(darkSwapContext, incomingNote.asset, [this.noteDtoToNote(incomingNote)]);
     }
-    console.log('Post settlement for ', orderId);
-    await this.orderEventService.logOrderStatusChange(orderId, orderInfo.wallet, orderInfo.chainId, OrderStatus.SETTLED);
+    console.log('Post settlement for ', orderInfo.orderId);
+    await this.orderEventService.logOrderStatusChange(orderInfo.orderId, orderInfo.wallet, orderInfo.chainId, OrderStatus.SETTLED);
   }
 
-  async matchedForAlice(orderId: string) {
-    const orderInfo = await this.dbService.getOrderByOrderId(orderId);
-    if (orderInfo && orderInfo.status === OrderStatus.OPEN) {
-      await this.orderEventService.logOrderStatusChange(orderId, orderInfo.wallet, orderInfo.chainId, OrderStatus.MATCHED);
-      await this.dbService.updateOrderMatched(orderId);
+  async matchedForAlice(orderInfo: OrderDto) {
+    if (orderInfo.status === OrderStatus.OPEN) {
+      await this.orderEventService.logOrderStatusChange(orderInfo.orderId, orderInfo.wallet, orderInfo.chainId, OrderStatus.MATCHED);
+      await this.dbService.updateOrderMatched(orderInfo.orderId);
     } else {
-      console.log('Order ', orderId, ' is not in open status', orderInfo.status);
+      console.log('Order ', orderInfo.orderId, ' is not in open status', orderInfo.status);
     }
   }
 
-  async bobConfirm(orderId: string) {
-    const orderInfo = await this.dbService.getOrderByOrderId(orderId);
+  async bobConfirm(orderInfo:OrderDto) {
     const assetPair = await this.dbService.getAssetPairById(orderInfo.assetPairId, orderInfo.chainId);
 
     const rawNote = await this.dbService.getNoteByCommitment(orderInfo.noteCommitment);
@@ -168,7 +161,8 @@ export class SettlementService {
       rho: rawNote.rho,
       asset: rawNote.asset,
       amount: rawNote.amount,
-      feeRatio: BigInt(orderInfo.feeRatio)
+      feeRatio: BigInt(orderInfo.feeRatio),
+      address: orderInfo.wallet
     } as DarkSwapOrderNote;
     
     const swapInAsset = orderNote.asset === assetPair.quoteAddress? assetPair.baseAddress : assetPair.quoteAddress;
@@ -187,12 +181,12 @@ export class SettlementService {
     const bobConfirmDto = {
       chainId: orderInfo.chainId,
       wallet: orderInfo.wallet,
-      orderId: orderId,
+      orderId: orderInfo.orderId,
       swapMessage: serializeDarkSwapMessage(darkSwapMessage)
     } as bobConfirmDto;
 
     await this.booknodeService.confirmOrder(bobConfirmDto);
-    console.log('Order confirmed for ', orderId);
-    await this.orderEventService.logOrderStatusChange(orderId, orderInfo.wallet, orderInfo.chainId, OrderStatus.MATCHED);
+    console.log('Order confirmed for ', orderInfo.orderId);
+    await this.orderEventService.logOrderStatusChange(orderInfo.orderId, orderInfo.wallet, orderInfo.chainId, OrderStatus.MATCHED);
   }
 }

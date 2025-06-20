@@ -45,18 +45,17 @@ export class OrderService {
     return OrderService.instance;
   }
 
-  async triggerOrder(orderId: string) {
-    const order = await this.dbService.getOrderByOrderId(orderId);
-    if (!order) {
+  async triggerOrder(orderInfo: OrderDto) {
+    if (!orderInfo) {
       throw new DarkSwapException('Order not found');
     }
 
-    this.dbService.updateOrderTriggered(orderId);
+    this.dbService.updateOrderTriggered(orderInfo.orderId);
 
     await OrderEventService.getInstance().logOrderStatusChange(
-      orderId,
-      order.wallet,
-      order.chainId,
+      orderInfo.orderId,
+      orderInfo.wallet,
+      orderInfo.chainId,
       OrderStatus.TRIGGERED
     );
   }
@@ -216,11 +215,10 @@ export class OrderService {
     );
   }
 
-  async cancelOrderByNotificaion(orderId: string) {
+  async cancelOrderByNotificaion(orderInfo:  OrderDto) {
 
-    const order = await this.dbService.getOrderByOrderId(orderId);
-    const darkSwapContext = await DarkSwapContext.createDarkSwapContext(order.chainId, order.wallet);
-    await this.cancelOrder(orderId, darkSwapContext, true);
+    const darkSwapContext = await DarkSwapContext.createDarkSwapContext(orderInfo.chainId, orderInfo.wallet);
+    await this.cancelOrder(orderInfo.orderId, darkSwapContext, true);
   }
 
   async getOrdersByStatusAndPage(status: number, page: number, limit: number): Promise<OrderDto[]> {

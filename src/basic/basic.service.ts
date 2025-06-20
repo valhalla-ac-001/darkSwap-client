@@ -5,8 +5,6 @@ import { DatabaseService } from '../common/db/database.service';
 import { NotesJoinService } from '../common/notesJoin.service';
 import { NoteService } from '../common/note.service'; 
 import { getConfirmations } from '../config/networkConfig';
-import { WalletMutexService } from '../common/mutex/walletMutex.service';
-import { NoteType } from '../types';
 
 @Injectable()
 export class BasicService {
@@ -17,12 +15,10 @@ export class BasicService {
   private dbService: DatabaseService;
   private noteService: NoteService;
   private notesJoinService: NotesJoinService;
-  private walletMutexService: WalletMutexService;
   public constructor() {
     this.dbService = DatabaseService.getInstance();
     this.noteService = NoteService.getInstance();
     this.notesJoinService = NotesJoinService.getInstance();
-    this.walletMutexService = WalletMutexService.getInstance();
   }
 
   // Method to deposit funds
@@ -36,10 +32,8 @@ export class BasicService {
 
     await this.noteService.addNote(newBalanceNote, darkSwapContext,false);
 
-    const mutex = this.walletMutexService.getMutex(darkSwapContext.walletAddress.toLowerCase());
-    const tx = await mutex.runExclusive(async () => {
-      return await depositService.execute(context);
-    });
+    const tx = await depositService.execute(context);
+
     const receipt = await darkSwapContext.darkSwap.provider.waitForTransaction(tx, getConfirmations(darkSwapContext.chainId));
     if (receipt.status !== 1) {
       throw new Error("Deposit failed");
@@ -68,10 +62,7 @@ export class BasicService {
       amount,
       darkSwapContext.signature);
     
-    const mutex = this.walletMutexService.getMutex(darkSwapContext.walletAddress.toLowerCase());
-    const tx = await mutex.runExclusive(async () => {
-      return await withdrawService.execute(withdrawContext);
-    });
+    const tx = await withdrawService.execute(withdrawContext);
     
     const receipt = await darkSwapContext.darkSwap.provider.waitForTransaction(tx, getConfirmations(darkSwapContext.chainId));
     if (receipt.status !== 1) {

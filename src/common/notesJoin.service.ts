@@ -2,20 +2,16 @@ import { DarkSwapNote, JoinService, TripleJoinService, getNoteOnChainStatusBySig
 import { DarkSwapContext } from './context/darkSwap.context';
 import { DatabaseService } from './db/database.service';
 import { getConfirmations } from '../config/networkConfig';
-import { WalletMutexService } from './mutex/walletMutex.service';
 import { NoteService } from './note.service';
 import { DarkSwapException } from '../exception/darkSwap.exception';
-import { NoteType } from '../types';
 
 
 export class NotesJoinService {
   private static instance: NotesJoinService;
   private dbService: DatabaseService;
   private noteService: NoteService;
-  private walletMutexService: WalletMutexService;
   private constructor() {
     this.dbService = DatabaseService.getInstance();
-    this.walletMutexService = WalletMutexService.getInstance();
     this.noteService = NoteService.getInstance();
   }
 
@@ -35,10 +31,8 @@ export class NotesJoinService {
       darkSwapContext.signature);
       this.noteService.addNote(outNote, darkSwapContext, false);
 
-    const mutex = this.walletMutexService.getMutex(darkSwapContext.walletAddress.toLowerCase());
-    const tx = await mutex.runExclusive(async () => {
-      return await joinService.execute(joinContext);
-    });
+    const tx = await joinService.execute(joinContext);
+
     //check if tx is success
     const receipt = await darkSwapContext.darkSwap.provider.waitForTransaction(tx, getConfirmations(darkSwapContext.chainId));
     if (receipt.status !== 1) {
@@ -61,10 +55,8 @@ export class NotesJoinService {
       notesToJoin[2],
       darkSwapContext.signature);
     this.noteService.addNote(outNote, darkSwapContext, false);
-    const mutex = this.walletMutexService.getMutex(darkSwapContext.walletAddress.toLowerCase());
-    const tx = await mutex.runExclusive(async () => {
-      return await tripleJoinService.execute(joinContext);
-    });
+    const tx = await tripleJoinService.execute(joinContext);
+
     //check if tx is success
     const receipt = await darkSwapContext.darkSwap.provider.waitForTransaction(tx, getConfirmations(darkSwapContext.chainId));
     if (receipt.status !== 1) {
@@ -118,6 +110,7 @@ export class NotesJoinService {
       rho: 0n,
       amount: 0n,
       asset: "0x0",
+      address: "0x0"
     };
 
     await this.dbService.getAssetNotesByWalletAndChainIdAndAsset(
@@ -130,6 +123,7 @@ export class NotesJoinService {
         rho: note.rho,
         amount: note.amount,
         asset: note.asset,
+        address: note.wallet
       }));
 
       if (notesToJoin) {
