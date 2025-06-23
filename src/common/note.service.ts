@@ -26,8 +26,8 @@ export class NoteService {
     }
   }
 
-  public async addNote(note: DarkSwapNote, darkSwapContext: DarkSwapContext, isOrderNote: boolean, txHash?: string) {
-    await this.dbService.addNote(
+  public addNote(note: DarkSwapNote, darkSwapContext: DarkSwapContext, isOrderNote: boolean, txHash?: string) {
+    this.dbService.addNote(
       darkSwapContext.chainId,
       darkSwapContext.publicKey,
       darkSwapContext.walletAddress,
@@ -39,8 +39,8 @@ export class NoteService {
       txHash? txHash : '');
   }
 
-  public async setNoteUsed(note: DarkSwapNote, darkSwapContext: DarkSwapContext) {
-    await this.dbService.updateNoteSpentByWalletAndNoteCommitment(darkSwapContext.walletAddress, darkSwapContext.chainId, note.note);
+  public setNoteUsed(note: DarkSwapNote, darkSwapContext: DarkSwapContext) {
+    this.dbService.updateNoteSpentByWalletAndNoteCommitment(darkSwapContext.walletAddress, darkSwapContext.chainId, note.note);
   }
 
   public async setNotesActive(notes: DarkSwapNote[], darkSwapContext: DarkSwapContext, txHash: string) {

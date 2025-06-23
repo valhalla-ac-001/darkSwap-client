@@ -1,10 +1,10 @@
 export const hardhatContracts = {
-    "mimc254": "0x2fe19128A8257182fdD77f90eA96D27cA342897A",
-    "merkleTreeOperator": "0x0", //FIXME
-    "verifierHub": "0x897945A56464616a525C9e5F11a8D400a72a8f3A",
-    "eRC20AssetPool": "0x633a7eB9b8912b22f3616013F3153de687F96074",
-    "eRC721AssetPool": "0x1E53bea57Dd5dDa7bFf1a1180a2f64a5c9e222f5",
-    "eTHAssetPool": "0x27f7785b17c6B4d034094a1B16Bc928bD697f386",
-    "darkSwapAssetManager": "0x0", //FIXME
-    "darkSwapFeeAssetManager": "0x0", //FIXME
+    "mimc254": "0x488b54Cf1b3F65Fa0cf76889ccb78afD2a054f4E",
+    "merkleTreeOperator": "0x31C89d6188b169aDCC7f6002d9cBAB605B67fd6d",
+    "verifierHub": "0xcb152965e87F765eb8b5F91CEfFA59510DA1E6B4",
+    "eRC20AssetPool": "0xd4fa1258D1A60639E4C8BAe59e3110054Dd622cc",
+    "eRC721AssetPool": "0xaE13506dEAe7F82EA5c1c646d0b6693b220A4BB8",
+    "eTHAssetPool": "0xee98C47e4D793945D8372AaF89636455D28fa8dd",
+    "darkSwapFeeAssetManager": "0x0956d3d8480cD0C4e35b168D843B70582b67a7Bc",
+    "darkSwapAssetManager": "0x9D8946A8A0c5a583Bf05bE83B981406182ac9d2f",
 }

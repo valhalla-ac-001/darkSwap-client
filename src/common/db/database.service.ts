@@ -48,7 +48,7 @@ export class DatabaseService {
   }
 
   // Note operations
-  public async addNote(
+  public addNote(
     chainId: number,
     publicKey: string,
     walletAddress: string,
@@ -57,7 +57,7 @@ export class DatabaseService {
     rho: bigint,
     asset: string,
     amount: bigint,
-    txHashCreated: string): Promise<number> {
+    txHashCreated: string): number {
     const query = `INSERT INTO NOTES (
       chainId, publicKey, wallet, type, noteCommitment, 
       rho, asset, amount, status, txHashCreated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
@@ -76,7 +76,7 @@ export class DatabaseService {
     return Number(result.lastInsertRowid);
   }
 
-  public async getAssetNotesByWalletAndChainIdAndAsset(walletAddress: string, chainId: number, asset: string): Promise<NoteDto[]> {
+  public getAssetNotesByWalletAndChainIdAndAsset(walletAddress: string, chainId: number, asset: string): NoteDto[] {
     const query = `SELECT * FROM NOTES WHERE wallet = ? AND chainId = ? AND asset = ? AND status = ? AND type = ?`;
     const stmt = this.db.prepare(query);
     const rows = stmt.all(walletAddress.toLowerCase(), chainId, asset.toLowerCase(), NoteStatus.ACTIVE, NoteType.DARKSWAP) as NoteEntity[];
