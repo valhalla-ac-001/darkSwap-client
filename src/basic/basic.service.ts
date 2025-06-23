@@ -5,6 +5,7 @@ import { DatabaseService } from '../common/db/database.service';
 import { NotesJoinService } from '../common/notesJoin.service';
 import { NoteService } from '../common/note.service';
 import { getConfirmations } from '../config/networkConfig';
+import { DarkSwapException } from '../exception/darkSwap.exception';
 
 @Injectable()
 export class BasicService {
@@ -53,7 +54,7 @@ export class BasicService {
     const currentBalanceNote = await this.notesJoinService.getCurrentBalanceNote(darkSwapContext, asset.address);
 
     if (currentBalanceNote.amount < amount) {
-      throw new Error("Insufficient funds");
+      throw new DarkSwapException("Insufficient funds");
     }
 
     const { context: withdrawContext, newBalanceNote } = await withdrawService.prepare(
