@@ -45,27 +45,27 @@ async function processMessage(message: QueuedMessage): Promise<void> {
             case EventType.OrderMatchedAsBob:
                 orderInfo = await dbService.getOrderByOrderId(notificationEvent.orderId);
                 console.log('Event for order matched as Bob: ', notificationEvent.orderId);
-                walletMutexService.getMutex(orderInfo.wallet.toLowerCase()).runExclusive(async () => {
+                await walletMutexService.getMutex(orderInfo.chainId, orderInfo.wallet.toLowerCase()).runExclusive(async () => {
                     await settlementService.bobConfirm(orderInfo);
                 });
                 break;
             case EventType.OrderMatchedAsAlice:
                 orderInfo = await dbService.getOrderByOrderId(notificationEvent.orderId);
-                walletMutexService.getMutex(orderInfo.wallet.toLowerCase()).runExclusive(async () => {
+                await walletMutexService.getMutex(orderInfo.chainId, orderInfo.wallet.toLowerCase()).runExclusive(async () => {
                     console.log('Event for order matched as Alice: ', notificationEvent.orderId);
                     await settlementService.matchedForAlice(orderInfo);
                 });
                 break;
             case EventType.OrderConfirmed:
                 orderInfo = await dbService.getOrderByOrderId(notificationEvent.orderId);
-                walletMutexService.getMutex(orderInfo.wallet.toLowerCase()).runExclusive(async () => {
+                await walletMutexService.getMutex(orderInfo.chainId, orderInfo.wallet.toLowerCase()).runExclusive(async () => {
                     console.log('Event for order confirmed: ', notificationEvent.orderId);
                     await settlementService.aliceSwap(orderInfo);
                 });
                 break;
             case EventType.OrderSettled:
                 orderInfo = await dbService.getOrderByOrderId(notificationEvent.orderId);
-                walletMutexService.getMutex(orderInfo.wallet.toLowerCase()).runExclusive(async () => {
+                await walletMutexService.getMutex(orderInfo.chainId, orderInfo.wallet.toLowerCase()).runExclusive(async () => {
                     console.log('Event for order settled: ', notificationEvent.orderId);
                     await settlementService.bobPostSettlement(orderInfo, notificationEvent.txHash || '');
                 });
@@ -75,14 +75,14 @@ async function processMessage(message: QueuedMessage): Promise<void> {
                 break;
             case EventType.orderCancelled:
                 orderInfo = await dbService.getOrderByOrderId(notificationEvent.orderId);
-                walletMutexService.getMutex(orderInfo.wallet.toLowerCase()).runExclusive(async () => {
+                await walletMutexService.getMutex(orderInfo.chainId, orderInfo.wallet.toLowerCase()).runExclusive(async () => {
                     console.log('Event for order cancelled: ', notificationEvent.orderId);
                     await orderService.cancelOrderByNotificaion(orderInfo);
                 });
                 break;
             case EventType.OrderTriggered:
                 orderInfo = await dbService.getOrderByOrderId(notificationEvent.orderId);
-                walletMutexService.getMutex(orderInfo.wallet.toLowerCase()).runExclusive(async () => {
+                await walletMutexService.getMutex(orderInfo.chainId, orderInfo.wallet.toLowerCase()).runExclusive(async () => {
                     console.log('Event for order triggered: ', notificationEvent.orderId);
                     await orderService.triggerOrder(orderInfo);
                 });
@@ -91,9 +91,13 @@ async function processMessage(message: QueuedMessage): Promise<void> {
                 console.log('Unknown event:', notificationEvent);
                 break;
         }
-    } catch (error) {
-        console.log(error.stack, error.message);
+    } catch (error: any) {
         console.error('Invalid message:', message.data);
+        if (error instanceof Error) {
+            console.error('Caught error:', error.stack || error.message || error);
+        } else {
+            console.error('Caught non-standard error:', JSON.stringify(error, null, 2));
+        }
     }
 }
 
@@ -103,7 +107,7 @@ async function processMessageQueue(): Promise<void> {
     }
 
     processingState = ProcessingState.Processing;
-    
+
     try {
         while (messageQueue.length > 0) {
             const message = messageQueue.shift();
@@ -135,7 +139,7 @@ export function startWebSocket() {
     let ws: WebSocket;
     let isReconnecting = false;
     let reconnectTimeout: NodeJS.Timeout;
-    
+
     let heartbeatInterval: NodeJS.Timeout;
     let lastHeartbeatTime: number = Date.now();
     const HEARTBEAT_INTERVAL = 30000;
@@ -169,7 +173,7 @@ export function startWebSocket() {
 
     const connect = () => {
         cleanup();
-        
+
         ws = new WebSocket(booknodeUrl);
 
         ws.on('open', () => {

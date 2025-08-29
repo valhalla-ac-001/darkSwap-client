@@ -24,7 +24,7 @@ export class BasicController {
   async deposit(@Body() depositDto: DepositDto) {
     const context = await DarkSwapContext.createDarkSwapContext(depositDto.chainId, depositDto.wallet)
     const token = await TokenService.getTokenByChainId(depositDto.chainId, depositDto.asset);
-    const mutex = this.walletMutexService.getMutex(context.walletAddress.toLowerCase());
+    const mutex = this.walletMutexService.getMutex(context.chainId, context.walletAddress.toLowerCase());
     await mutex.runExclusive(async () => { 
       await this.basicService.deposit(context, token, BigInt(depositDto.amount));
     });
@@ -39,7 +39,7 @@ export class BasicController {
   async withdraw(@Body() withdrawDto: WithdrawDto) {
     const context = await DarkSwapContext.createDarkSwapContext(withdrawDto.chainId, withdrawDto.wallet)
     const token = await TokenService.getTokenByChainId(withdrawDto.chainId, withdrawDto.asset);
-    const mutex = this.walletMutexService.getMutex(context.walletAddress.toLowerCase());
+    const mutex = this.walletMutexService.getMutex(context.chainId, context.walletAddress.toLowerCase());
     await mutex.runExclusive(async () => {
       await this.basicService.withdraw(context, token, BigInt(withdrawDto.amount));
     });

@@ -7,7 +7,7 @@ const confirmationsConfig: { [chainId: number]: number } = {
   [ChainId.MAINNET]: 12,
   [ChainId.ARBITRUM_ONE]: 12,
   [ChainId.BASE]: 12,
-  [ChainId.SEPOLIA]: 6,
+  [ChainId.SEPOLIA]: 3,
   [ChainId.HARDHAT]: 3,
   [ChainId.HARDHAT_ARBITRUM]: 3,
 }
@@ -72,6 +72,21 @@ export const networkConfig: { [chainId: number]: NetworkConfig } = {
     merkleTreeOperator: '0xa0577A04AabF1982b0A00b55D07cb2789cA6DBE1',
     darkSwapAssetManager: '0x3d6dc90F4840c595d58739C38E88fcC23FCe374a',
     darkSwapFeeAssetManager: '0x7744103e5a28C4c2c420DB1462de21f1dc53e11A',
+    drakSwapSubgraphUrl: 'https://subgraph.satsuma-prod.com/1c6a44a9ed6e/pgs-team--611591/singularity-sepolia-subgraph/api',
+    explorerUrl: {
+      tx: 'https://sepolia.etherscan.io/tx/',
+      address: 'https://sepolia.etherscan.io/address/',
+      block: 'https://sepolia.etherscan.io/block/',
+    },
+  },
+  [ChainId.HORIZEN_TESTNET]: {
+    priceOracle: '0x54c375f28ce4B0c2B986D6256E4Bc75d242A8793',
+    ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+    nativeWrapper: '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14',
+
+    merkleTreeOperator: '0x8Cd4061C8b3743810B811E1F4A0B597D79225f4E',
+    darkSwapAssetManager: '0xEBeD6c7C2189bf8ad6687D3A4cf4b83fB4D1a3D2',
+    darkSwapFeeAssetManager: '0x8CF86856Bd7dE95b4ba33DCae4cd5Ec02542Bf5b',
     drakSwapSubgraphUrl: 'https://subgraph.satsuma-prod.com/1c6a44a9ed6e/pgs-team--611591/singularity-sepolia-subgraph/api',
     explorerUrl: {
       tx: 'https://sepolia.etherscan.io/tx/',

@@ -15,16 +15,17 @@ export class WalletMutexService {
         return WalletMutexService.instance;
     }
 
-    public init(wallets: string[]): void {
+    public init(chainId: number, wallets: string[]): void {
         for (const wallet of wallets) {
-            this.getMutex(wallet);
+            this.getMutex(chainId, wallet);
         }
     }
 
-    public getMutex(wallet: string): Mutex {
-        if (!this.walletMutex.has(wallet.toLowerCase())) {
-            this.walletMutex.set(wallet.toLowerCase(), new Mutex());
+    public getMutex(chainId: number, wallet: string): Mutex {
+        const key = `${chainId}:${wallet.toLowerCase()}`;
+        if (!this.walletMutex.has(key)) {
+            this.walletMutex.set(key, new Mutex());
         }
-        return this.walletMutex.get(wallet.toLowerCase())!;
+        return this.walletMutex.get(key)!;
     }
 }

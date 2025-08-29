@@ -30,7 +30,10 @@ async function bootstrap() {
 
   await assetPairService.syncAssetPairs();
   const wallets = ConfigLoader.getInstance().getConfig().wallets.map((wallet) => wallet.address.toLowerCase());
-  WalletMutexService.getInstance().init(wallets);
+  const chains = ConfigLoader.getInstance().getConfig().chainRpcs.map((rpc) => rpc.chainId);
+  chains.forEach((chainId) => {
+    WalletMutexService.getInstance().init(chainId, wallets);
+  });
 
   const port = process.env.PORT || 3002;
   await app.listen(port);

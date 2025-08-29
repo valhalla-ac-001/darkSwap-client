@@ -23,7 +23,7 @@ export class AccountController {
   @Post('/getBalance')
   @ApiGenericResponse(MyAssetsDto)
   async getAssetsByChainIdAndWallet(@Body() baseDto: BaseDto): Promise<MyAssetsDto> {
-    const mutex = this.walletMutexService.getMutex(baseDto.wallet.toLowerCase());
+    const mutex = this.walletMutexService.getMutex(baseDto.chainId, baseDto.wallet.toLowerCase());
     return await mutex.runExclusive(async () => {
       return this.accountService.getAssetsByChainId(baseDto.wallet, baseDto.chainId);
     });
@@ -33,7 +33,7 @@ export class AccountController {
   @Post('syncAssets')
   async syncAssets(@Body() baseDto: BaseDto): Promise<void> {
     const context = await DarkSwapContext.createDarkSwapContext(baseDto.chainId, baseDto.wallet)
-    const mutex = this.walletMutexService.getMutex(context.walletAddress.toLowerCase());
+    const mutex = this.walletMutexService.getMutex(baseDto.chainId, context.walletAddress.toLowerCase());
     await mutex.runExclusive(async () => {
       return this.accountService.syncAssets(context, baseDto.wallet, baseDto.chainId);
     });
@@ -42,7 +42,7 @@ export class AccountController {
   @Post('syncOneAsset')
   async syncOneAsset(@Body() syncAssetDto: SyncAssetDto): Promise<void> {
     const context = await DarkSwapContext.createDarkSwapContext(syncAssetDto.chainId, syncAssetDto.wallet)
-    const mutex = this.walletMutexService.getMutex(context.walletAddress.toLowerCase());
+    const mutex = this.walletMutexService.getMutex(syncAssetDto.chainId, context.walletAddress.toLowerCase());
     await mutex.runExclusive(async () => {
       return this.accountService.syncOneAsset(context, syncAssetDto.wallet, syncAssetDto.chainId, syncAssetDto.asset);
     });

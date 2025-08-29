@@ -86,7 +86,7 @@ export class OrderService {
       this.noteService.addNote(newBalance, darkSwapContext, false);
     }
 
-    const mutex = this.walletMutexService.getMutex(darkSwapContext.walletAddress.toLowerCase());
+    const mutex = this.walletMutexService.getMutex(darkSwapContext.chainId, darkSwapContext.walletAddress.toLowerCase());
     const tx = await mutex.runExclusive(async () => {
       return await proCreateOrderService.execute(context);
     });
@@ -183,7 +183,7 @@ export class OrderService {
       darkSwapContext.signature
     );
 
-    const mutex = this.walletMutexService.getMutex(darkSwapContext.walletAddress.toLowerCase());
+    const mutex = this.walletMutexService.getMutex(darkSwapContext.chainId, darkSwapContext.walletAddress.toLowerCase());
     const tx = await mutex.runExclusive(async () => {
       return await proCancelOrderService.execute(context);
     });
