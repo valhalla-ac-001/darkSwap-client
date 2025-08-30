@@ -9,10 +9,14 @@ import { UpdatePriceDto } from './dto/updatePrice.dto';
 import { OrderService } from './order.service';
 import { DarkSwapError } from '@thesingularitynetwork/darkswap-sdk';
 import { OrderType } from '../types';
+import { WalletMutexService } from '../common/mutex/walletMutex.service';
 
 @Controller('orders')
 export class OrderController {
-  constructor(private readonly orderService: OrderService) { }
+  private walletMutexService: WalletMutexService;
+  constructor(private readonly orderService: OrderService) {
+    this.walletMutexService = WalletMutexService.getInstance();
+  }
 
   @Post('createOrder')
   @ApiResponse({
@@ -37,8 +41,11 @@ export class OrderController {
       }
     }
 
-    const context = await DarkSwapContext.createDarkSwapContext(orderDto.chainId, orderDto.wallet)
-    await this.orderService.createOrder(orderDto, context);
+    const context = await DarkSwapContext.createDarkSwapContext(orderDto.chainId, orderDto.wallet);
+    const mutex = this.walletMutexService.getMutex(context.chainId, context.walletAddress.toLowerCase());
+    await mutex.runExclusive(async () => {
+      await this.orderService.createOrder(orderDto, context);
+    });
   }
 
   @Delete('cancelOrder')
@@ -48,8 +55,11 @@ export class OrderController {
     type: DarkSwapSimpleResponse
   })
   async cancelOrder(@Body() cancelOrderDto: CancelOrderDto) {
-    const context = await DarkSwapContext.createDarkSwapContext(cancelOrderDto.chainId, cancelOrderDto.wallet)
-    await this.orderService.cancelOrder(cancelOrderDto.orderId, context);
+    const context = await DarkSwapContext.createDarkSwapContext(cancelOrderDto.chainId, cancelOrderDto.wallet);
+    const mutex = this.walletMutexService.getMutex(context.chainId, context.walletAddress.toLowerCase());
+    await mutex.runExclusive(async () => {
+      await this.orderService.cancelOrder(cancelOrderDto.orderId, context);
+    });
   }
 
   @Put('updatePrice')

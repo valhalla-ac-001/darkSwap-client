@@ -14,7 +14,6 @@ import { UpdatePriceDto } from './dto/updatePrice.dto';
 import { OrderEventService } from './orderEvent.service';
 import { NotesJoinService } from '../common/notesJoin.service';
 import { NoteService } from '../common/note.service';
-import { WalletMutexService } from '../common/mutex/walletMutex.service';
 
 @Injectable()
 export class OrderService {
@@ -27,7 +26,6 @@ export class OrderService {
   private notesJoinService: NotesJoinService;
   private bookNodeService: BooknodeService;
   private orderEventService: OrderEventService;
-  private walletMutexService: WalletMutexService;
 
   public constructor() {
     this.dbService = DatabaseService.getInstance();
@@ -35,7 +33,6 @@ export class OrderService {
     this.notesJoinService = NotesJoinService.getInstance();
     this.bookNodeService = BooknodeService.getInstance();
     this.orderEventService = OrderEventService.getInstance();
-    this.walletMutexService = WalletMutexService.getInstance();
   }
 
   public static getInstance(): OrderService {
@@ -86,10 +83,7 @@ export class OrderService {
       this.noteService.addNote(newBalance, darkSwapContext, false);
     }
 
-    const mutex = this.walletMutexService.getMutex(darkSwapContext.chainId, darkSwapContext.walletAddress.toLowerCase());
-    const tx = await mutex.runExclusive(async () => {
-      return await proCreateOrderService.execute(context);
-    });
+    const tx = await proCreateOrderService.execute(context);
     const receipt = await darkSwapContext.darkSwap.provider.waitForTransaction(tx, getConfirmations(darkSwapContext.chainId));
     if (receipt.status !== 1) {
       throw new DarkSwapException("Order creation failed");
@@ -183,10 +177,7 @@ export class OrderService {
       darkSwapContext.signature
     );
 
-    const mutex = this.walletMutexService.getMutex(darkSwapContext.chainId, darkSwapContext.walletAddress.toLowerCase());
-    const tx = await mutex.runExclusive(async () => {
-      return await proCancelOrderService.execute(context);
-    });
+    const tx = await proCancelOrderService.execute(context);
     const receipt = await darkSwapContext.darkSwap.provider.waitForTransaction(tx, getConfirmations(darkSwapContext.chainId));
     if (receipt.status !== 1) {
       throw new DarkSwapException("Order cancellation failed");
