@@ -69,9 +69,9 @@ export const networkConfig: { [chainId: number]: NetworkConfig } = {
     ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
     nativeWrapper: '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14',
 
-    merkleTreeOperator: '0xa0577A04AabF1982b0A00b55D07cb2789cA6DBE1',
-    darkSwapAssetManager: '0x3d6dc90F4840c595d58739C38E88fcC23FCe374a',
-    darkSwapFeeAssetManager: '0x7744103e5a28C4c2c420DB1462de21f1dc53e11A',
+    merkleTreeOperator: '0x8bA03aeD844102aC14Bd01fe1aE1A8E109321D8B',
+    darkSwapAssetManager: '0x25EbDE3a81D237D614239D87a17d5c819cc04052',
+    darkSwapFeeAssetManager: '0x52630F3F540787fF4184d3CaaCA5d2F6698dB232',
     drakSwapSubgraphUrl: 'https://subgraph.satsuma-prod.com/1c6a44a9ed6e/pgs-team--611591/singularity-sepolia-subgraph/api',
     explorerUrl: {
       tx: 'https://sepolia.etherscan.io/tx/',
@@ -84,10 +84,10 @@ export const networkConfig: { [chainId: number]: NetworkConfig } = {
     ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
     nativeWrapper: '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14',
 
-    merkleTreeOperator: '0x8Cd4061C8b3743810B811E1F4A0B597D79225f4E',
-    darkSwapAssetManager: '0xEBeD6c7C2189bf8ad6687D3A4cf4b83fB4D1a3D2',
-    darkSwapFeeAssetManager: '0x8CF86856Bd7dE95b4ba33DCae4cd5Ec02542Bf5b',
-    drakSwapSubgraphUrl: 'https://subgraph.satsuma-prod.com/1c6a44a9ed6e/pgs-team--611591/singularity-sepolia-subgraph/api',
+    merkleTreeOperator: '0xd184b7561CB36Ae269Bf27742343266798106213',
+    darkSwapAssetManager: '0xFB6C93eF0B515d041b0DcDF427657E41DDDB8Da8',
+    darkSwapFeeAssetManager: '0xF4f1D4F28Be82D81135c13D255452B8325B585B0',
+    drakSwapSubgraphUrl: 'https://bb.subgraph.thesingularity.network/subgraphs/name/singularity/',
     explorerUrl: {
       tx: 'https://sepolia.etherscan.io/tx/',
       address: 'https://sepolia.etherscan.io/address/',

@@ -1466,10 +1466,10 @@
   resolved "https://registry.yarnpkg.com/@stablelib/wipe/-/wipe-1.0.1.tgz#d21401f1d59ade56a62e139462a97f104ed19a36"
   integrity sha512-WfqfX/eXGiAd3RJe4VU2snh/ZPwtSjLG4ynQ/vYzvghTh7dHFcI1wl+nrkWG6lGhukOxOsUHfv8dUXr58D0ayg==
 
-"@thesingularitynetwork/darkswap-sdk@^0.1.26":
-  version "0.1.26"
-  resolved "https://registry.yarnpkg.com/@thesingularitynetwork/darkswap-sdk/-/darkswap-sdk-0.1.26.tgz#94b1028786f1bf0075770b43edab67ac23b92b7e"
-  integrity sha512-tyt88+YQaTWu8/lRYrMBExBwsuC9/oCcEHiVbEfdTYcgXqnkVGfGjRCOkgMI2xlsEM/sSXgd8B1WgYdgcaSbAw==
+"@thesingularitynetwork/darkswap-sdk@^0.1.28":
+  version "0.1.28"
+  resolved "https://registry.yarnpkg.com/@thesingularitynetwork/darkswap-sdk/-/darkswap-sdk-0.1.28.tgz#58b59ba192aeaa333968015a958921b876b2f495"
+  integrity sha512-G9u/TaZR7hwBHGaVpbQ64zsMyZHb+1zU+DkKHbAdlO24K5a534orTcnNAaRFpOLRkWmpJXVP46ziZF67e5Kl3g==
   dependencies:
     "@aztec/bb.js" "0.84.0"
     "@noir-lang/noir_js" "1.0.0-beta.6"
