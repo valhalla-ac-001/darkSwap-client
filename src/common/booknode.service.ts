@@ -113,7 +113,7 @@ export class BooknodeService {
             orderDirection: bookNodeMathedOrderDetail.orderDirection,
             isAlice: bookNodeMathedOrderDetail.isAlice,
             aliceAmount: BigInt(bookNodeMathedOrderDetail.aliceAmount),
-            aliceMatchedAmount: BigInt(bookNodeMathedOrderDetail.bobMatchedAmount),
+            aliceMatchedAmount: BigInt(bookNodeMathedOrderDetail.aliceMatchedAmount),
             bobMatchedAmount: BigInt(bookNodeMathedOrderDetail.bobMatchedAmount),
             bobSwapMessage: bookNodeMathedOrderDetail.bobSwapMessage
         } as MatchedOrderDto;

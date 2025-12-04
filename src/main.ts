@@ -9,6 +9,10 @@ import { ConfigLoader } from './utils/configUtil';
 
 import { startWebSocket } from './wsmain';
 import { WalletMutexService } from './common/mutex/walletMutex.service';
+import dotenv from 'dotenv';
+
+
+dotenv.config();
 
 async function bootstrap() {
   ConfigLoader.getInstance();
