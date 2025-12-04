@@ -53,9 +53,9 @@ export const networkConfig: { [chainId: number]: NetworkConfig } = {
     priceOracle: '0xf224a25453D76A41c4427DD1C05369BC9f498444',
     ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
     nativeWrapper: '0x4200000000000000000000000000000000000006',
-    merkleTreeOperator: '0x0', //FIXME
-    darkSwapAssetManager: '0x0', //FIXME
-    darkSwapFeeAssetManager: '0x0', //FIXME
+    merkleTreeOperator: '0x918B4F76CAE5F67A3818D8eD3d0e11D9888684E9',
+    darkSwapAssetManager: '0x6fbA1F1aAb8449b7ba576E41F4617d918391b7cF',
+    darkSwapFeeAssetManager: '0xfde341e63EB2f25A32D353d58C2DAd7f91c8Bd57',
 
     drakSwapSubgraphUrl: 'https://subgraph.satsuma-prod.com/1c6a44a9ed6e/pgs-team--611591/singularity-base-subgraph/api',
     explorerUrl: {
