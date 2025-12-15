@@ -1,15 +1,52 @@
-FROM node:18.20.6
+############################
+# 1. Build stage
+############################
+FROM node:24-bullseye AS builder
 
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN corepack enable
+
+COPY package.json yarn.lock ./
+
+RUN yarn install --frozen-lockfile
+
 COPY . .
 
-RUN npm install
-RUN npm rebuild better-sqlite3
+RUN yarn build
 
-RUN npm run build
-RUN rm -rf ./src
+############################
+# 2. Runtime stage
+############################
+FROM node:24-bullseye-slim AS runtime
+
+WORKDIR /app
+ENV NODE_ENV=production
+
+RUN corepack enable
+
+COPY package.json yarn.lock ./
+
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    pkg-config \
+    && yarn install --frozen-lockfile --production \
+    && yarn cache clean \
+    && apt-get remove -y python3 make g++ pkg-config \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /app/dist ./dist
 
 EXPOSE 3002
 
-CMD ["node", "/app/dist/main.js", "config=/config/config.yaml"]
+CMD ["node", "dist/main.js", "config=/config/config.yaml"]
