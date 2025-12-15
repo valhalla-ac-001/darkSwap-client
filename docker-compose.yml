@@ -1,8 +1,8 @@
 version: '3'
 services:
   app:
-    container_name: singularity-pro
-    image: singularitynetwork/singularity-pro
+    container_name: darkswap-pro
+    image: singularitynetwork/darkswap-pro
     build: .
     ports:
       - "3002:3002"

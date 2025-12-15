@@ -35,7 +35,7 @@ export const networkConfig: { [chainId: number]: NetworkConfig } = {
     merkleTreeOperator: '0x8bA03aeD844102aC14Bd01fe1aE1A8E109321D8B',
     darkSwapAssetManager: '0x25EbDE3a81D237D614239D87a17d5c819cc04052',
     darkSwapFeeAssetManager: '0x52630F3F540787fF4184d3CaaCA5d2F6698dB232',
-    darkSwapSubgraphUrl: 'https://subgraph.satsuma-prod.com/1c6a44a9ed6e/pgs-team--611591/singularity-sepolia-subgraph/api'
+    darkSwapSubgraphUrl: 'https://api.goldsky.com/api/public/project_cmgzjxdql005h5np27j8qhmdj/subgraphs/darkswapSepolia/0.0.1/gn'
   },
   [ChainId.HORIZEN_TESTNET]: {
     priceOracle: '0x54c375f28ce4B0c2B986D6256E4Bc75d242A8793',

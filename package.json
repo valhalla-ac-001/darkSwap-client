@@ -10,7 +10,7 @@
     "start:dev": "NODE_ENV=dev nest start --watch -- config=./config.yaml",
     "lint": "eslint '{src,test}/**/*.ts'",
     "test": "jest",
-    "docker:build": "docker build -t singularity-pro ."
+    "docker:build": "docker build -t darkswap-pro ."
   },
   "dependencies": {
     "@fireblocks/fireblocks-web3-provider": "^1.3.17",
