@@ -1,0 +1,29 @@
+wallets:
+  - name: "mainnet-wallet"
+    address: ""
+    privateKey: ""
+    type: "privateKey"
+
+singularityRelayers:
+  - relayerName: "Arbitrum Relayer"
+    relayerAddress: "0xa56ac48884F53C78d3F7f5806Ce6f8b30dCbD59D"
+    hostUrl: "https://relayer.thesingularity.network:20000"
+    chainId: 42161
+
+chainRpcs:
+  - chainId: 42161
+    rpcUrl: "https://arb1.arbitrum.io/rpc"
+
+dbFilePath: /app/data/db.sqlite3
+bookNodeSocketUrl: wss://orderbook.thesingularity.network
+bookNodeApiUrl: https://orderbook.thesingularity.network
+bookNodeApiKey: ""
+
+
+#optional
+#userSwapRelayerAddress: 
+#userSwapRelayerPrivateKey: 
+
+#proofOptions:
+#  threads: 10
+#  memory: 8192

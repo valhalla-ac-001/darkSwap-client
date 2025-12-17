@@ -185,6 +185,7 @@ export class OrderService {
 
     this.noteService.setNoteUsed(noteToProcess as DarkSwapNote, darkSwapContext);
     this.noteService.addNote(newBalance, darkSwapContext, false, tx);
+    this.noteService.setNoteActive(newBalance, darkSwapContext, tx);
 
     const cancelOrderDto = {
       orderId: orderId,
