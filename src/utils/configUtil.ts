@@ -53,9 +53,11 @@ export class ConfigLoader {
 
         } catch (error) {
             if (error instanceof z.ZodError) {
-                console.error('Failed to validate configuration:', error.errors);
+                console.error('❌ Failed to validate configuration:');
+                console.error(JSON.stringify(error.errors, null, 2));
             } else {
-                console.error('Failed to load configuration:', error);
+                console.error('❌ Failed to load configuration:');
+                console.error(error);
             }
             process.exit(1);
         }
