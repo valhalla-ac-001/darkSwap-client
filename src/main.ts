@@ -15,7 +15,13 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 async function bootstrap() {
-  ConfigLoader.getInstance();
+  try {
+    ConfigLoader.getInstance();
+  } catch (error) {
+    console.error('Failed to load config:', error);
+    throw error;
+  }
+  
   const assetPairService = AssetPairService.getInstance();
 
   const app = await NestFactory.create(AppModule);
@@ -45,4 +51,7 @@ async function bootstrap() {
 }
 
 
-bootstrap();
+bootstrap().catch((error) => {
+  console.error('Fatal error during bootstrap:', error);
+  process.exit(1);
+});
