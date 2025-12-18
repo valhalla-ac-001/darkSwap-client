@@ -184,6 +184,9 @@ export class OrderService {
     }
 
     this.noteService.setNoteUsed(noteToProcess as DarkSwapNote, darkSwapContext);
+    if (currentBalanceNote.note !== 0n) {
+      this.noteService.setNoteUsed(currentBalanceNote, darkSwapContext);
+    }
     this.noteService.addNote(newBalance, darkSwapContext, false, tx);
     this.noteService.setNoteActive(newBalance, darkSwapContext, tx);
 
