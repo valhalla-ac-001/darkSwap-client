@@ -100,9 +100,9 @@ export class DatabaseService {
 
 
   public async getNotesByWalletAndChainIdAndAsset(walletAddress: string, chainId: number, asset: string): Promise<NoteDto[]> {
-    const query = `SELECT * FROM NOTES WHERE wallet = ? AND chainId = ? AND asset = ? AND status = ?`;
+    const query = `SELECT * FROM NOTES WHERE wallet = ? AND chainId = ? AND asset = ? AND (status = ? OR status = ?)`;
     const stmt = this.db.prepare(query);
-    const rows = stmt.all(walletAddress.toLowerCase(), chainId, asset.toLowerCase(), NoteStatus.ACTIVE) as NoteEntity[];
+    const rows = stmt.all(walletAddress.toLowerCase(), chainId, asset.toLowerCase(), NoteStatus.ACTIVE, NoteStatus.CREATED) as NoteEntity[];
 
     const notes = rows.map(row => ({
       id: row.id,
@@ -147,7 +147,7 @@ export class DatabaseService {
   public async getNotesByWalletAndChainId(walletAddress: string, chainId: number): Promise<NoteDto[]> {
     const query = `SELECT * FROM NOTES WHERE wallet = ? AND chainId = ? AND (status = ? OR status = ?)`;
     const stmt = this.db.prepare(query);
-    const rows = stmt.all(walletAddress.toLowerCase(), chainId, NoteStatus.ACTIVE, NoteStatus.LOCKED) as NoteEntity[];
+    const rows = stmt.all(walletAddress.toLowerCase(), chainId, NoteStatus.ACTIVE, NoteStatus.CREATED) as NoteEntity[];
 
     const notes = rows.map(row => ({
       id: row.id,
