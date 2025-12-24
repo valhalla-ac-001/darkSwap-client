@@ -4,6 +4,7 @@ import { IsOrderDirectionValid } from '../../common/decorators/is-order-directio
 import { IsOrderStpModeValid } from '../../common/decorators/is-order-stp-mode-valid.decorator';
 import { IsOrderTimeInForceValid } from '../../common/decorators/is-order-time-in-force-valid.decorator';
 import { IsOrderTypeValid } from '../../common/decorators/is-order-type-valid.decorator';
+import { IsBigIntString } from '../../common/decorators/is-bigint-string.decorator';
 import { BaseDto } from '../../common/dto/base.dto';
 import { OrderDirection, OrderStatus, OrderType, StpMode, TimeInForce } from '../../types';
 
@@ -47,13 +48,16 @@ export class OrderDto extends BaseDto {
     @ApiProperty({description: 'Human readable price'})
     @IsNotEmpty()
     price: string;
-    @ApiProperty({description: 'Amount with decimals'})
+    @ApiProperty({description: 'Amount in smallest unit (wei/base units) as integer string, e.g. "1000000000000000000" for 1 token with 18 decimals'})
+    @IsBigIntString()
     @IsNotEmpty()
     amountOut: string;
-    @ApiProperty({description: 'Amount with decimals'})
+    @ApiProperty({description: 'Amount in smallest unit (wei/base units) as integer string, e.g. "1000000000000000000" for 1 token with 18 decimals'})
+    @IsBigIntString()
     @IsNotEmpty()
     amountIn: string;
-    @ApiProperty({description: 'Amount with decimals'})
+    @ApiProperty({description: 'Amount in smallest unit (wei/base units) as integer string, e.g. "1000000000000000000" for 1 token with 18 decimals'})
+    @IsBigIntString()
     @IsOptional()
     partialAmountIn?: string;
     

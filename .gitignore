@@ -3,3 +3,5 @@ dist
 .env
 config.yaml
 db.sqlite3
+
+config.yaml.mainnet
