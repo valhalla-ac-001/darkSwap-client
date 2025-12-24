@@ -7,7 +7,7 @@ import { DatabaseService } from '../common/db/database.service';
 import { AssetPairDto } from '../common/dto/assetPair.dto';
 import { getConfirmations } from '../config/networkConfig';
 import { DarkSwapException } from '../exception/darkSwap.exception';
-import { OrderDirection, OrderStatus, OrderType } from '../types';
+import { NoteStatus, OrderDirection, OrderStatus, OrderType } from '../types';
 import { CancelOrderDto } from './dto/cancelOrder.dto';
 import { OrderDto } from './dto/order.dto';
 import { UpdatePriceDto } from './dto/updatePrice.dto';
@@ -150,8 +150,8 @@ export class OrderService {
       throw new DarkSwapException('Order not found');
     }
 
-    if (order.status !== OrderStatus.OPEN) {
-      throw new DarkSwapException('Order is not cancellable');
+    if (order.status !== OrderStatus.OPEN && order.status !== OrderStatus.NOT_TRIGGERED) {
+      throw new DarkSwapException(`Order is not cancellable. Current status: ${OrderStatus[order.status]}`);
     }
 
     const note = await this.dbService.getNoteByCommitment(order.noteCommitment);
@@ -170,12 +170,22 @@ export class OrderService {
     const currentBalanceNote = await this.notesJoinService.getCurrentBalanceNote(darkSwapContext, note.asset);
     const proCancelOrderService = new ProCancelOrderService(darkSwapContext.darkSwap);
 
-    const { context, newBalance } = await proCancelOrderService.prepare(
-      darkSwapContext.walletAddress,
-      noteToProcess,
-      currentBalanceNote,
-      darkSwapContext.signature
-    );
+    let context, newBalance;
+    try {
+      const result = await proCancelOrderService.prepare(
+        darkSwapContext.walletAddress,
+        noteToProcess,
+        currentBalanceNote,
+        darkSwapContext.signature
+      );
+      context = result.context;
+      newBalance = result.newBalance;
+    } catch (error: any) {
+      if (error?.reason === 'Not valid note commitment' || error?.message?.includes('Not valid note commitment')) {
+        throw new DarkSwapException('Order does not exist on blockchain. This order may have failed during creation. Please contact support to clean up the database.');
+      }
+      throw error;
+    }
 
     this.noteService.addNote(newBalance, darkSwapContext, false);
 
@@ -216,6 +226,66 @@ export class OrderService {
 
   async getOrdersByStatusAndPage(status: number, page: number, limit: number): Promise<OrderDto[]> {
     return await this.dbService.getOrdersByStatusAndPage(status, page, limit);
+  }
+
+  async forceCleanupGhostOrder(orderId: string) {
+    const order = await this.dbService.getOrderByOrderId(orderId);
+    if (!order) {
+      throw new DarkSwapException('Order not found');
+    }
+    
+    this.logger.warn(`Force cleaning up ghost order: ${orderId} (status: ${OrderStatus[order.status]})`);
+    await this.dbService.cancelOrder(orderId);
+    
+    return { message: `Ghost order ${orderId} marked as CANCELLED` };
+  }
+
+  async diagnoseStuckOrder(orderId: string) {
+    const order = await this.dbService.getOrderByOrderId(orderId);
+    if (!order) {
+      throw new DarkSwapException('Order not found');
+    }
+
+    const result: any = {
+      orderId: order.orderId,
+      currentStatus: OrderStatus[order.status],
+      statusCode: order.status,
+      wallet: order.wallet,
+      chainId: order.chainId,
+      noteCommitment: order.noteCommitment,
+      txHashCreated: order.txHashCreated,
+      txHashSettled: order.txHashSettled || 'None',
+    };
+
+    // Check order events
+    const events = await this.dbService.getOrderEventsByOrderId(orderId);
+    result.events = events.map(e => ({
+      status: OrderStatus[e.status],
+      time: e.createdAt
+    }));
+
+    // Try to get matched order details from booknode
+    try {
+      const booknodeDetails = await this.bookNodeService.getMatchedOrderDetails(order);
+      result.booknodeStatus = 'Matched';
+      result.isAlice = booknodeDetails.isAlice;
+      result.aliceAmount = booknodeDetails.aliceAmount.toString();
+      result.bobSwapMessageExists = !!booknodeDetails.bobSwapMessage;
+    } catch (e: any) {
+      result.booknodeStatus = 'Error: ' + e.message;
+    }
+
+    // Check if note exists in database
+    try {
+      const note = await this.dbService.getNoteByCommitment(order.noteCommitment);
+      result.noteInDB = true;
+      result.noteStatus = NoteStatus[note.status];
+      result.noteAmount = note.amount.toString();
+    } catch (e) {
+      result.noteInDB = false;
+    }
+
+    return result;
   }
 
   async getOrderById(orderId: string): Promise<OrderDto> {
