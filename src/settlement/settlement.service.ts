@@ -149,6 +149,13 @@ export class SettlementService {
       await this.noteJoinService.getCurrentBalanceNote(darkSwapContext, incomingNote.asset, [this.noteDtoToNote(incomingNote)]);
     }
     console.log('Post settlement for ', orderInfo.orderId);
+    
+    // CRITICAL FIX (2025-12-30): Must update order status in ORDERS table
+    // Bug: Order status was only logged to ORDER_EVENTS but not updated in ORDERS table,
+    // causing settled orders to remain as OPEN, preventing balance from being freed up.
+    // This matches the pattern in updateAliceOrderData() - both Alice and Bob settlements
+    // must update the order status to SETTLED. DO NOT REMOVE THIS LINE.
+    await this.dbService.updateOrderSettlementTransaction(orderInfo.orderId, txHash);
     await this.orderEventService.logOrderStatusChange(orderInfo.orderId, orderInfo.wallet, orderInfo.chainId, OrderStatus.SETTLED);
   }
 
