@@ -8,6 +8,7 @@ import { UpdatePriceDto } from '../orders/dto/updatePrice.dto';
 import { OrderDto } from '../orders/dto/order.dto';
 import { DarkSwapException } from '../exception/darkSwap.exception';
 import { OrderType } from '../types';
+import { BobPostSettlementDto } from '../settlement/dto/bobPostSettlement.dto';
 
 interface BookNodeMatchedOrder {
     orderId: string;
@@ -180,6 +181,11 @@ export class BooknodeService {
             partialAmountIn: updatePriceDto.partialAmountIn
         }
         const result = await this.sendPutRequest(bookNodeUpdatePriceDto, '/api/orders/price');
+        return result.data;
+    }
+
+    public async bobPostSettlement(bobPostSettlementDto: BobPostSettlementDto): Promise<any> {
+        const result = await this.sendRequest(bobPostSettlementDto, '/api/orders/takerSettled');
         return result.data;
     }
 }
