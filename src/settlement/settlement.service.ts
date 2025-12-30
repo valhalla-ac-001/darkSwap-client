@@ -139,6 +139,11 @@ export class SettlementService {
   }
 
   async bobPostSettlement(orderInfo: OrderDto, txHash: string) {
+    // Guard: Skip if already settled or cancelled to prevent re-processing duplicate WebSocket events
+    if (orderInfo.status === OrderStatus.SETTLED || orderInfo.status === OrderStatus.CANCELLED) {
+      return;
+    }
+    
     //TODO 
     const outgoingNote = await this.dbService.getNoteByCommitment(orderInfo.noteCommitment);
     const darkSwapContext = await DarkSwapContext.createDarkSwapContext(orderInfo.chainId, orderInfo.wallet);
