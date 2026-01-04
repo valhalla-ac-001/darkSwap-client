@@ -5,9 +5,7 @@ const TOLERANCE_PRECISION = 100000n;
 export function checkPrice(amountBase: bigint, amountQuote: bigint, decimalBase: number, decimalQuote: number, price: number, tolerance = TOLERANCE) {
     const priceWithDecimal = BigInt((price * PRECISION).toFixed(0));
     const amountQuoteNew = amountBase * priceWithDecimal * BigInt(10 ** decimalQuote) / BigInt(10 ** decimalBase) / BigInt(PRECISION);
-    console.log(amountQuote, amountQuoteNew);
     const deviationBps = _calculateDeviationBps(amountQuoteNew, amountQuote);
-    console.log(deviationBps);
     return deviationBps <= tolerance;
 }
 
