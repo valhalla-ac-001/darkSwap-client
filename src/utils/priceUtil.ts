@@ -1,14 +1,17 @@
 const PRECISION = 1e8;
+const TOLERANCE = 1n;
+const TOLERANCE_PRECISION = 100000n;
 
-export function checkPrice(amountBase: bigint, amountQuote: bigint, decimalBase: number, decimalQuote: number, price: number, toleranceBps = 10n) {
+export function checkPrice(amountBase: bigint, amountQuote: bigint, decimalBase: number, decimalQuote: number, price: number, tolerance = TOLERANCE) {
     const priceWithDecimal = BigInt((price * PRECISION).toFixed(0));
     const amountQuoteNew = amountBase * priceWithDecimal * BigInt(10 ** decimalQuote) / BigInt(10 ** decimalBase) / BigInt(PRECISION);
     console.log(amountQuote, amountQuoteNew);
     const deviationBps = _calculateDeviationBps(amountQuoteNew, amountQuote);
-    return deviationBps <= toleranceBps;
+    console.log(deviationBps);
+    return deviationBps <= tolerance;
 }
 
 function _calculateDeviationBps(actual: bigint, expected: bigint) {
     const diff = actual > expected ? actual - expected : expected - actual;
-    return (diff * 10000n) / expected;
+    return (diff * TOLERANCE_PRECISION) / expected;
 }
