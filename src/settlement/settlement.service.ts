@@ -139,13 +139,14 @@ export class SettlementService {
   }
 
   async bobPostSettlement(orderInfo: OrderDto, txHash: string) {
-    //TODO 
+    const matchedOrderDetail = await this.booknodeService.getMatchedOrderDetails(orderInfo);
+    const bobSwapMessage = deserializeDarkSwapMessage(matchedOrderDetail.bobSwapMessage);
     const outgoingNote = await this.dbService.getNoteByCommitment(orderInfo.noteCommitment);
     const darkSwapContext = await DarkSwapContext.createDarkSwapContext(orderInfo.chainId, orderInfo.wallet);
     this.noteService.setNoteUsed(this.noteDtoToNote(outgoingNote), darkSwapContext);
     await this.dbService.updateOrderSettlementTransaction(orderInfo.orderId, txHash);
-    if (orderInfo.incomingNoteCommitment) {
-      const incomingNote = await this.dbService.getNoteByCommitment(orderInfo.incomingNoteCommitment);
+    if (bobSwapMessage.inNote) {
+      const incomingNote = await this.dbService.getNoteByCommitment(bobSwapMessage.inNote.note.toString());
       await this.noteService.setNoteActive(this.noteDtoToNote(incomingNote), darkSwapContext, txHash);
       await this.noteJoinService.getCurrentBalanceNote(darkSwapContext, incomingNote.asset, [this.noteDtoToNote(incomingNote)]);
     }
@@ -168,6 +169,14 @@ export class SettlementService {
   }
 
   async bobConfirm(orderInfo: OrderDto) {
+    //get orderdetail from bookNode
+    const orderDetail = await this.booknodeService.getMatchedOrderDetails(orderInfo);
+    if (orderDetail.bobSwapMessage) {
+      //just skip it
+      console.log('Order ', orderInfo.orderId, ' has already been confirmed');
+      return;
+    }
+
     const assetPair = await this.dbService.getAssetPairById(orderInfo.assetPairId, orderInfo.chainId);
 
     const rawNote = await this.dbService.getNoteByCommitment(orderInfo.noteCommitment);
@@ -192,6 +201,7 @@ export class SettlementService {
     );
 
     this.noteService.addNote(darkSwapMessage.inNote, darkSwapContext, false);
+    this.dbService.updateOrderIncomingNoteCommitment(orderInfo.orderId, darkSwapMessage.inNote.note);
 
     const bobConfirmDto = {
       chainId: orderInfo.chainId,
