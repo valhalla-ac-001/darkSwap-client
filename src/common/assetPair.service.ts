@@ -22,22 +22,32 @@ export class AssetPairService {
 
     async syncAssetPairs() {
         console.log("Syncing asset pairs");
-        const result =
-            await axios.get(`${this.configLoader.getConfig().bookNodeApiUrl}/api/trading-pairs`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.configLoader.getConfig().bookNodeApiKey}`
-                }
-            });
+        try {
+            const result =
+                await axios.get(`${this.configLoader.getConfig().bookNodeApiUrl}/api/trading-pairs`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${this.configLoader.getConfig().bookNodeApiKey}`
+                    },
+                    timeout: 10000 // 10 second timeout
+                });
 
-        if (result.status == 200 && result.data.code == 200 && result.data.data) {
-            const assetPairs = result.data.data as AssetPairDto[];
-            for (const assetPair of assetPairs) {
-                const assetPairDb = await this.dbService.getAssetPairById(assetPair.id, assetPair.chainId);
-                if (!assetPairDb) {
-                    await this.dbService.addAssetPair(assetPair);
+            if (result.status == 200 && result.data.code == 200 && result.data.data) {
+                const assetPairs = result.data.data as AssetPairDto[];
+                for (const assetPair of assetPairs) {
+                    const assetPairDb = await this.dbService.getAssetPairById(assetPair.id, assetPair.chainId);
+                    if (!assetPairDb) {
+                        await this.dbService.addAssetPair(assetPair);
+                    }
                 }
+                console.log(`Synced ${assetPairs.length} asset pairs`);
+            } else {
+                console.warn(`Failed to sync asset pairs: status=${result.status}, code=${result.data?.code}`);
             }
+        } catch (error) {
+            console.error('Error syncing asset pairs:', error.message);
+            console.error('BookNode URL:', this.configLoader.getConfig().bookNodeApiUrl);
+            console.error('Continuing without asset pairs...');
         }
     }
 

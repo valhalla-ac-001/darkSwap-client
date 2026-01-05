@@ -31,6 +31,7 @@ enum ProcessingState {
 
 const messageQueue: QueuedMessage[] = [];
 let processingState: ProcessingState = ProcessingState.Idle;
+const skippedOrders: Set<string> = new Set(); // Track already-skipped ghost orders to reduce log spam
 
 async function processMessage(message: QueuedMessage): Promise<void> {
     try {
@@ -46,6 +47,13 @@ async function processMessage(message: QueuedMessage): Promise<void> {
         switch (notificationEvent.eventType) {
             case EventType.OrderMatchedAsBob:
                 orderInfo = await dbService.getOrderByOrderId(notificationEvent.orderId);
+                if (!orderInfo) {
+                    if (!skippedOrders.has(notificationEvent.orderId)) {
+                        console.warn(`[SKIP] Order ${notificationEvent.orderId} not found in database (bob match). Likely ghost order from bot with failed sync.`);
+                        skippedOrders.add(notificationEvent.orderId);
+                    }
+                    return;
+                }
                 console.log('Event for order matched as Bob: ', notificationEvent.orderId);
                 await walletMutexService.getMutex(orderInfo.chainId, orderInfo.wallet.toLowerCase()).runExclusive(async () => {
                     await settlementService.bobConfirm(orderInfo);
@@ -53,6 +61,13 @@ async function processMessage(message: QueuedMessage): Promise<void> {
                 break;
             case EventType.OrderMatchedAsAlice:
                 orderInfo = await dbService.getOrderByOrderId(notificationEvent.orderId);
+                if (!orderInfo) {
+                    if (!skippedOrders.has(notificationEvent.orderId)) {
+                        console.warn(`[SKIP] Order ${notificationEvent.orderId} not found in database (alice match). Likely ghost order from bot with failed sync.`);
+                        skippedOrders.add(notificationEvent.orderId);
+                    }
+                    return;
+                }
                 await walletMutexService.getMutex(orderInfo.chainId, orderInfo.wallet.toLowerCase()).runExclusive(async () => {
                     console.log('Event for order matched as Alice: ', notificationEvent.orderId);
                     await settlementService.matchedForAlice(orderInfo);
@@ -60,6 +75,13 @@ async function processMessage(message: QueuedMessage): Promise<void> {
                 break;
             case EventType.OrderConfirmed:
                 orderInfo = await dbService.getOrderByOrderId(notificationEvent.orderId);
+                if (!orderInfo) {
+                    if (!skippedOrders.has(notificationEvent.orderId)) {
+                        console.warn(`[SKIP] Order ${notificationEvent.orderId} not found in database (confirmed). Likely ghost order from bot with failed sync.`);
+                        skippedOrders.add(notificationEvent.orderId);
+                    }
+                    return;
+                }
                 darkSwapContext = await DarkSwapContext.createDarkSwapContext(orderInfo.chainId, orderInfo.wallet);
                 await walletMutexService.getMutex(orderInfo.chainId, darkSwapContext.relayerAddress.toLowerCase()).runExclusive(async () => {
                     console.log('Event for order confirmed: ', notificationEvent.orderId);
@@ -68,6 +90,13 @@ async function processMessage(message: QueuedMessage): Promise<void> {
                 break;
             case EventType.OrderSettled:
                 orderInfo = await dbService.getOrderByOrderId(notificationEvent.orderId);
+                if (!orderInfo) {
+                    if (!skippedOrders.has(notificationEvent.orderId)) {
+                        console.warn(`[SKIP] Order ${notificationEvent.orderId} not found in database (settled). Likely ghost order from bot with failed sync.`);
+                        skippedOrders.add(notificationEvent.orderId);
+                    }
+                    return;
+                }
                 darkSwapContext = await DarkSwapContext.createDarkSwapContext(orderInfo.chainId, orderInfo.wallet);
                 await walletMutexService.getMutex(orderInfo.chainId, darkSwapContext.relayerAddress.toLowerCase()).runExclusive(async () => {
                     console.log('Event for order settled: ', notificationEvent.orderId);
@@ -79,6 +108,13 @@ async function processMessage(message: QueuedMessage): Promise<void> {
                 break;
             case EventType.orderCancelled:
                 orderInfo = await dbService.getOrderByOrderId(notificationEvent.orderId);
+                if (!orderInfo) {
+                    if (!skippedOrders.has(notificationEvent.orderId)) {
+                        console.warn(`[SKIP] Order ${notificationEvent.orderId} not found in database (cancelled). Likely ghost order from bot with failed sync.`);
+                        skippedOrders.add(notificationEvent.orderId);
+                    }
+                    return;
+                }
                 darkSwapContext = await DarkSwapContext.createDarkSwapContext(orderInfo.chainId, orderInfo.wallet);
                 await walletMutexService.getMutex(orderInfo.chainId, darkSwapContext.relayerAddress.toLowerCase()).runExclusive(async () => {
                     console.log('Event for order cancelled: ', notificationEvent.orderId);
@@ -87,6 +123,13 @@ async function processMessage(message: QueuedMessage): Promise<void> {
                 break;
             case EventType.OrderTriggered:
                 orderInfo = await dbService.getOrderByOrderId(notificationEvent.orderId);
+                if (!orderInfo) {
+                    if (!skippedOrders.has(notificationEvent.orderId)) {
+                        console.warn(`[SKIP] Order ${notificationEvent.orderId} not found in database (triggered). Likely ghost order from bot with failed sync.`);
+                        skippedOrders.add(notificationEvent.orderId);
+                    }
+                    return;
+                }
                 await walletMutexService.getMutex(orderInfo.chainId, orderInfo.wallet.toLowerCase()).runExclusive(async () => {
                     console.log('Event for order triggered: ', notificationEvent.orderId);
                     await orderService.triggerOrder(orderInfo);

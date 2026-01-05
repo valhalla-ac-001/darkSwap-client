@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import 'reflect-metadata';
 import { AppModule } from './app.module';
@@ -15,11 +16,22 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 async function bootstrap() {
-  ConfigLoader.getInstance();
+  try {
+    ConfigLoader.getInstance();
+  } catch (error) {
+    console.error('Failed to load config:', error);
+    throw error;
+  }
+  
   const assetPairService = AssetPairService.getInstance();
 
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('api');
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    transform: true,
+  }));
   app.useGlobalFilters(new DarkSwapExceptionFilter());
   app.useGlobalInterceptors(new ResponseInterceptor());
 
@@ -45,4 +57,7 @@ async function bootstrap() {
 }
 
 
-bootstrap();
+bootstrap().catch((error) => {
+  console.error('Fatal error during bootstrap:', error);
+  process.exit(1);
+});

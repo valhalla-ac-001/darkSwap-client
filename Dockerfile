@@ -47,6 +47,9 @@ RUN apt-get update && apt-get install -y \
 
 COPY --from=builder /app/dist ./dist
 
+# Create data directory for database and config
+RUN mkdir -p /app/data
+
 EXPOSE 3002
 
-CMD ["node", "dist/main.js", "config=/config/config.yaml"]
+CMD ["node", "dist/main.js", "config=/app/data/config.yaml"]

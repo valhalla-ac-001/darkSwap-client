@@ -40,8 +40,9 @@ export class TokenService {
             name,
             address: tokenAddress,
         }
-    } catch (e) {
-        throw new Error('Error fetching token, please retry.');
+    } catch (e: any) {
+        console.error(`Failed to fetch token ${tokenAddress} on chain ${chainId}:`, e.message || e);
+        throw new Error(`Error fetching token ${tokenAddress} on chain ${chainId}: ${e.message || 'RPC connection failed'}`);
     }
   }
 }

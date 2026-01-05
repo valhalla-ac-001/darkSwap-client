@@ -139,6 +139,11 @@ export class SettlementService {
   }
 
   async bobPostSettlement(orderInfo: OrderDto, txHash: string) {
+    // Guard: Skip if already settled or cancelled to prevent re-processing duplicate WebSocket events
+    if (orderInfo.status === OrderStatus.SETTLED || orderInfo.status === OrderStatus.CANCELLED) {
+      return;
+    }
+    
     const matchedOrderDetail = await this.booknodeService.getMatchedOrderDetails(orderInfo);
     const bobSwapMessage = deserializeDarkSwapMessage(matchedOrderDetail.bobSwapMessage);
     const outgoingNote = await this.dbService.getNoteByCommitment(orderInfo.noteCommitment);
