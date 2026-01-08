@@ -71,7 +71,28 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3002;
   await app.listen(port);
-  startWebSocket();
+  const stopWebSocket = startWebSocket();
+
+  // Graceful shutdown handlers
+  const shutdown = async (signal: string) => {
+    console.log(`\n${signal} received. Shutting down gracefully...`);
+    
+    // Stop WebSocket connection
+    if (stopWebSocket) {
+      console.log('Closing WebSocket connection...');
+      stopWebSocket();
+    }
+    
+    // Close NestJS app
+    console.log('Closing HTTP server...');
+    await app.close();
+    
+    console.log('Shutdown complete. Exiting...');
+    process.exit(0);
+  };
+
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
 }
 
 

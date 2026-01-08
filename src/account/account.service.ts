@@ -115,12 +115,12 @@ export class AccountService {
   }
 
   async syncOneAsset(darkSwapContext: DarkSwapContext, wallet: string, chainId: number, asset: string): Promise<void> {
-    // Clean up ghost notes older than 1 hour (throttled to run max once per hour)
+    // Clean up ghost notes older than 8 hours (throttled to run max once per hour)
     const now = Date.now();
     if (now - this.lastPurgeTime > this.PURGE_INTERVAL_MS) {
-      const deletedCount = this.dbService.purgeGhostNotes(1);
+      const deletedCount = this.dbService.purgeGhostNotes(8);
       if (deletedCount > 0) {
-        this.logger.log(`Purged ${deletedCount} ghost notes older than 1 hour`);
+        this.logger.log(`Purged ${deletedCount} ghost notes older than 8 hours`);
       }
       this.lastPurgeTime = now;
     }
@@ -181,12 +181,12 @@ export class AccountService {
   }
 
   async syncAssets(darkSwapContext: DarkSwapContext, wallet: string, chainId: number): Promise<void> {
-    // Clean up ghost notes older than 1 hour (throttled to run max once per hour)
+    // Clean up ghost notes older than 8 hours (throttled to run max once per hour)
     const now = Date.now();
     if (now - this.lastPurgeTime > this.PURGE_INTERVAL_MS) {
-      const deletedCount = this.dbService.purgeGhostNotes(1);
+      const deletedCount = this.dbService.purgeGhostNotes(8);
       if (deletedCount > 0) {
-        this.logger.log(`Purged ${deletedCount} ghost notes older than 1 hour`);
+        this.logger.log(`Purged ${deletedCount} ghost notes older than 8 hours`);
       }
       this.lastPurgeTime = now;
     }

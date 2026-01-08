@@ -199,7 +199,7 @@ export class DatabaseService {
     this.updateNoteStatus(wallet, chainId, noteCommitment, NoteStatus.LOCKED);
   }
 
-  public purgeGhostNotes(hoursOld: number = 1): number {
+  public purgeGhostNotes(hoursOld: number = 8): number {
     const query = `DELETE FROM NOTES WHERE status = ? AND (txHashCreated IS NULL OR txHashCreated = '') AND datetime(createdAt) < datetime('now', ? || ' hours')`;
     const stmt = this.db.prepare(query);
     const result = stmt.run(NoteStatus.CREATED, `-${hoursOld}`);
