@@ -15,9 +15,11 @@ export class AccountService {
   private static instance: AccountService;
   private dbService: DatabaseService;
   
-  // With global RPC rate limiting in place, we can process notes faster
-  // Process in batches of 10 with 200ms delay for progress visibility
-  private batchProcessor = new BatchProcessor(10, 200);
+  // Very conservative batching to avoid rate limits
+  // Process 2 notes per batch with 1 second delay
+  // At 8 req/sec provider limit + 2-3 calls per note = ~4-6 calls per batch
+  // This ensures we never exceed QuickNode's 15 req/sec limit
+  private batchProcessor = new BatchProcessor(2, 1000);
 
   public constructor() {
     this.dbService = DatabaseService.getInstance();

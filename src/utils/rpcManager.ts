@@ -7,28 +7,57 @@ import { FireblocksWeb3Provider } from '@fireblocks/fireblocks-web3-provider';
 /**
  * Rate-limited JsonRpcProvider wrapper
  * Throttles RPC calls to stay under QuickNode's 15 req/sec limit
+ * Includes retry logic for rate limit errors
  */
 class RateLimitedProvider extends ethers.JsonRpcProvider {
   private lastCallTime = 0;
   private readonly minDelayMs: number;
+  private readonly maxRetries = 3;
 
-  constructor(url: string, requestsPerSecond: number = 12) {
+  constructor(url: string, requestsPerSecond: number = 8) {
     super(url);
-    // Use 12 req/sec as safe default (80% of 15 req/sec limit)
+    // Use 8 req/sec as safe default (~53% of 15 req/sec limit)
+    // More conservative to handle burst scenarios
     this.minDelayMs = 1000 / requestsPerSecond;
   }
 
   override async send(method: string, params: Array<any>): Promise<any> {
-    // Throttle requests
-    const now = Date.now();
-    const timeSinceLastCall = now - this.lastCallTime;
+    let lastError: any;
     
-    if (timeSinceLastCall < this.minDelayMs) {
-      await new Promise(resolve => setTimeout(resolve, this.minDelayMs - timeSinceLastCall));
+    for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
+      try {
+        // Throttle requests
+        const now = Date.now();
+        const timeSinceLastCall = now - this.lastCallTime;
+        
+        if (timeSinceLastCall < this.minDelayMs) {
+          await new Promise(resolve => setTimeout(resolve, this.minDelayMs - timeSinceLastCall));
+        }
+        
+        this.lastCallTime = Date.now();
+        return await super.send(method, params);
+        
+      } catch (error: any) {
+        lastError = error;
+        
+        // Check if it's a rate limit error
+        const isRateLimit = error?.error?.code === -32007 || 
+                           error?.message?.includes('request limit reached');
+        
+        if (isRateLimit && attempt < this.maxRetries) {
+          // Exponential backoff: 1s, 2s, 4s
+          const backoffMs = 1000 * Math.pow(2, attempt);
+          console.warn(`Rate limit hit, retrying in ${backoffMs}ms (attempt ${attempt + 1}/${this.maxRetries})`);
+          await new Promise(resolve => setTimeout(resolve, backoffMs));
+          continue;
+        }
+        
+        // Not a rate limit error or out of retries
+        throw error;
+      }
     }
     
-    this.lastCallTime = Date.now();
-    return super.send(method, params);
+    throw lastError;
   }
 }
 

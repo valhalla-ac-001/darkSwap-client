@@ -15,6 +15,24 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+// Global error handlers to prevent server crashes
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  // Don't exit - log and continue
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  // Don't exit for rate limit errors
+  if (error.message?.includes('request limit reached')) {
+    console.warn('Rate limit error caught - server continuing...');
+    return;
+  }
+  // For other critical errors, exit gracefully
+  console.error('Critical error - exiting...');
+  process.exit(1);
+});
+
 async function bootstrap() {
   try {
     ConfigLoader.getInstance();
