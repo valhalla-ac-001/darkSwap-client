@@ -199,6 +199,13 @@ export class DatabaseService {
     this.updateNoteStatus(wallet, chainId, noteCommitment, NoteStatus.LOCKED);
   }
 
+  public purgeGhostNotes(hoursOld: number = 1): number {
+    const query = `DELETE FROM NOTES WHERE status = ? AND (txHashCreated IS NULL OR txHashCreated = '') AND datetime(createdAt) < datetime('now', ? || ' hours')`;
+    const stmt = this.db.prepare(query);
+    const result = stmt.run(NoteStatus.CREATED, `-${hoursOld}`);
+    return result.changes;
+  }
+
   // Asset pair operations
   public async addAssetPair(assetPair: AssetPairDto) {
     const query = `INSERT INTO ASSET_PAIRS ( id, chainId, baseAddress, baseSymbol, baseDecimal, quoteAddress, quoteSymbol, quoteDecimal) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;

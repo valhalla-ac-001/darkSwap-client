@@ -20,6 +20,10 @@ export class AccountService {
   // At 8 req/sec provider limit + 2-3 calls per note = ~4-6 calls per batch
   // This ensures we never exceed QuickNode's 15 req/sec limit
   private batchProcessor = new BatchProcessor(2, 1000);
+  
+  // Track last ghost note purge to avoid running too frequently
+  private lastPurgeTime: number = 0;
+  private readonly PURGE_INTERVAL_MS = 60 * 60 * 1000; // Run purge at most once per hour
 
   public constructor() {
     this.dbService = DatabaseService.getInstance();
@@ -111,6 +115,15 @@ export class AccountService {
   }
 
   async syncOneAsset(darkSwapContext: DarkSwapContext, wallet: string, chainId: number, asset: string): Promise<void> {
+    // Clean up ghost notes older than 1 hour (throttled to run max once per hour)
+    const now = Date.now();
+    if (now - this.lastPurgeTime > this.PURGE_INTERVAL_MS) {
+      const deletedCount = this.dbService.purgeGhostNotes(1);
+      if (deletedCount > 0) {
+        this.logger.log(`Purged ${deletedCount} ghost notes older than 1 hour`);
+      }
+      this.lastPurgeTime = now;
+    }
 
     const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
     const notes = (await this.dbService.getNotesByWalletAndChainIdAndAsset(wallet, chainId, asset))
@@ -168,6 +181,16 @@ export class AccountService {
   }
 
   async syncAssets(darkSwapContext: DarkSwapContext, wallet: string, chainId: number): Promise<void> {
+    // Clean up ghost notes older than 1 hour (throttled to run max once per hour)
+    const now = Date.now();
+    if (now - this.lastPurgeTime > this.PURGE_INTERVAL_MS) {
+      const deletedCount = this.dbService.purgeGhostNotes(1);
+      if (deletedCount > 0) {
+        this.logger.log(`Purged ${deletedCount} ghost notes older than 1 hour`);
+      }
+      this.lastPurgeTime = now;
+    }
+
     const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
     const notes = (await this.dbService.getNotesByWalletAndChainId(wallet, chainId))
       .filter(note => {
