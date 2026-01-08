@@ -5,6 +5,7 @@ import { MyAssetsDto } from './dto/asset.dto';
 import { getNoteOnChainStatusBySignature, NoteOnChainStatus } from '@thesingularitynetwork/darkswap-sdk';
 import { DarkSwapContext } from '../common/context/darkSwap.context';
 import { ConfigLoader } from '../utils/configUtil';
+import { BatchProcessor } from '../utils/rateLimiter';
 
 @Injectable()
 export class AccountService {
@@ -13,6 +14,10 @@ export class AccountService {
 
   private static instance: AccountService;
   private dbService: DatabaseService;
+  
+  // Process notes in batches of 5 with 500ms delay between batches
+  // This limits to ~10 requests/second, well under the 15/sec limit
+  private batchProcessor = new BatchProcessor(5, 500);
 
   public constructor() {
     this.dbService = DatabaseService.getInstance();
@@ -105,66 +110,73 @@ export class AccountService {
 
   async syncOneAsset(darkSwapContext: DarkSwapContext, wallet: string, chainId: number, asset: string): Promise<void> {
 
-    const notes = (await this.dbService.getNotesByWalletAndChainIdAndAsset(wallet, chainId, asset)).sort((a, b) => a.amount < b.amount ? 1 : -1);
+    const notes = (await this.dbService.getNotesByWalletAndChainIdAndAsset(wallet, chainId, asset))
+      .filter(note => note.status !== NoteStatus.SPENT)
+      .sort((a, b) => a.amount < b.amount ? 1 : -1);
 
-    for (const note of notes) {
+    this.logger.log(`Syncing ${notes.length} notes for asset ${asset} on chain ${chainId}`);
+
+    // Process notes in batches to avoid rate limiting
+    await this.batchProcessor.processBatch(notes, async (note) => {
       try {
-        if (note.status != NoteStatus.SPENT) {
-          const onChainStatus = await getNoteOnChainStatusBySignature(
-            darkSwapContext.darkSwap,
-            {
-              note: note.note,
-              rho: note.rho,
-              amount: note.amount,
-              asset: note.asset,
-              address: note.wallet
-            },
-            darkSwapContext.signature);
-          if (onChainStatus == NoteOnChainStatus.ACTIVE && note.status != NoteStatus.ACTIVE) {
-            this.dbService.updateNoteActiveByWalletAndNoteCommitment(wallet, chainId, note.note);
-          } else if (onChainStatus == NoteOnChainStatus.LOCKED && note.status != NoteStatus.LOCKED) {
-            this.dbService.updateNoteLockedByWalletAndNoteCommitment(wallet, chainId, note.note);
-          } else if (onChainStatus == NoteOnChainStatus.SPENT && note.status != NoteStatus.SPENT) {
-            this.dbService.updateNoteSpentByWalletAndNoteCommitment(wallet, chainId, note.note);
-          } else if (onChainStatus == NoteOnChainStatus.UNKNOWN && note.status != NoteStatus.CREATED) {
-            this.dbService.updateNoteCreatedByWalletAndNoteCommitment(wallet, chainId, note.note);
-          }
+        const onChainStatus = await getNoteOnChainStatusBySignature(
+          darkSwapContext.darkSwap,
+          {
+            note: note.note,
+            rho: note.rho,
+            amount: note.amount,
+            asset: note.asset,
+            address: note.wallet
+          },
+          darkSwapContext.signature);
+        
+        if (onChainStatus == NoteOnChainStatus.ACTIVE && note.status != NoteStatus.ACTIVE) {
+          this.dbService.updateNoteActiveByWalletAndNoteCommitment(wallet, chainId, note.note);
+        } else if (onChainStatus == NoteOnChainStatus.LOCKED && note.status != NoteStatus.LOCKED) {
+          this.dbService.updateNoteLockedByWalletAndNoteCommitment(wallet, chainId, note.note);
+        } else if (onChainStatus == NoteOnChainStatus.SPENT && note.status != NoteStatus.SPENT) {
+          this.dbService.updateNoteSpentByWalletAndNoteCommitment(wallet, chainId, note.note);
+        } else if (onChainStatus == NoteOnChainStatus.UNKNOWN && note.status != NoteStatus.CREATED) {
+          this.dbService.updateNoteCreatedByWalletAndNoteCommitment(wallet, chainId, note.note);
         }
       } catch (error) {
-        this.logger.error(`Error syncing asset ${note.asset} on chain ${chainId}: ${error.message}`);
+        this.logger.error(`Error syncing note for asset ${note.asset} on chain ${chainId}: ${error.message}`);
       }
-    }
+    });
   }
 
   async syncAssets(darkSwapContext: DarkSwapContext, wallet: string, chainId: number): Promise<void> {
-    const notes = await this.dbService.getNotesByWalletAndChainId(wallet, chainId);
+    const notes = (await this.dbService.getNotesByWalletAndChainId(wallet, chainId))
+      .filter(note => note.status !== NoteStatus.SPENT);
 
-    for (const note of notes) {
+    this.logger.log(`Syncing ${notes.length} notes for wallet ${wallet} on chain ${chainId}`);
+
+    // Process notes in batches to avoid rate limiting
+    await this.batchProcessor.processBatch(notes, async (note) => {
       try {
-        if (note.status != NoteStatus.SPENT) {
-          const onChainStatus = await getNoteOnChainStatusBySignature(
-            darkSwapContext.darkSwap,
-            {
-              note: note.note,
-              rho: note.rho,
-              amount: note.amount,
-              asset: note.asset,
-              address: note.wallet
-            },
-            darkSwapContext.signature);
-          if (onChainStatus == NoteOnChainStatus.ACTIVE && note.status != NoteStatus.ACTIVE) {
-            this.dbService.updateNoteActiveByWalletAndNoteCommitment(wallet, chainId, note.note);
-          } else if (onChainStatus == NoteOnChainStatus.LOCKED && note.status != NoteStatus.LOCKED) {
-            this.dbService.updateNoteLockedByWalletAndNoteCommitment(wallet, chainId, note.note);
-          } else if (onChainStatus == NoteOnChainStatus.SPENT && note.status != NoteStatus.SPENT) {
-            this.dbService.updateNoteSpentByWalletAndNoteCommitment(wallet, chainId, note.note);
-          } else if (onChainStatus == NoteOnChainStatus.UNKNOWN && note.status != NoteStatus.CREATED) {
-            this.dbService.updateNoteCreatedByWalletAndNoteCommitment(wallet, chainId, note.note);
-          }
+        const onChainStatus = await getNoteOnChainStatusBySignature(
+          darkSwapContext.darkSwap,
+          {
+            note: note.note,
+            rho: note.rho,
+            amount: note.amount,
+            asset: note.asset,
+            address: note.wallet
+          },
+          darkSwapContext.signature);
+        
+        if (onChainStatus == NoteOnChainStatus.ACTIVE && note.status != NoteStatus.ACTIVE) {
+          this.dbService.updateNoteActiveByWalletAndNoteCommitment(wallet, chainId, note.note);
+        } else if (onChainStatus == NoteOnChainStatus.LOCKED && note.status != NoteStatus.LOCKED) {
+          this.dbService.updateNoteLockedByWalletAndNoteCommitment(wallet, chainId, note.note);
+        } else if (onChainStatus == NoteOnChainStatus.SPENT && note.status != NoteStatus.SPENT) {
+          this.dbService.updateNoteSpentByWalletAndNoteCommitment(wallet, chainId, note.note);
+        } else if (onChainStatus == NoteOnChainStatus.UNKNOWN && note.status != NoteStatus.CREATED) {
+          this.dbService.updateNoteCreatedByWalletAndNoteCommitment(wallet, chainId, note.note);
         }
       } catch (error) {
-        this.logger.error(`Error syncing asset ${note.asset} on chain ${chainId}: ${error.message}`);
+        this.logger.error(`Error syncing note for asset ${note.asset} on chain ${chainId}: ${error.message}`);
       }
-    }
+    });
   }
 }
