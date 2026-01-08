@@ -15,9 +15,9 @@ export class AccountService {
   private static instance: AccountService;
   private dbService: DatabaseService;
   
-  // Process notes in batches of 5 with 500ms delay between batches
-  // This limits to ~10 requests/second, well under the 15/sec limit
-  private batchProcessor = new BatchProcessor(5, 500);
+  // With global RPC rate limiting in place, we can process notes faster
+  // Process in batches of 10 with 200ms delay for progress visibility
+  private batchProcessor = new BatchProcessor(10, 200);
 
   public constructor() {
     this.dbService = DatabaseService.getInstance();
@@ -140,7 +140,15 @@ export class AccountService {
           this.dbService.updateNoteCreatedByWalletAndNoteCommitment(wallet, chainId, note.note);
         }
       } catch (error) {
-        this.logger.error(`Error syncing note for asset ${note.asset} on chain ${chainId}: ${error.message}`);
+        // Check if it's a rate limit error vs missing note
+        if (error.message?.includes('request limit reached')) {
+          this.logger.warn(`Rate limit hit while syncing note for asset ${note.asset}, will retry later`);
+        } else if (error.code === 'CALL_EXCEPTION') {
+          // Note doesn't exist on-chain - likely never deposited, keep as CREATED
+          this.logger.debug(`Note not found on-chain for asset ${note.asset} (status: ${note.status})`);
+        } else {
+          this.logger.error(`Error syncing note for asset ${note.asset} on chain ${chainId}: ${error.message}`);
+        }
       }
     });
   }
@@ -175,7 +183,15 @@ export class AccountService {
           this.dbService.updateNoteCreatedByWalletAndNoteCommitment(wallet, chainId, note.note);
         }
       } catch (error) {
-        this.logger.error(`Error syncing note for asset ${note.asset} on chain ${chainId}: ${error.message}`);
+        // Check if it's a rate limit error vs missing note
+        if (error.message?.includes('request limit reached')) {
+          this.logger.warn(`Rate limit hit while syncing note for asset ${note.asset}, will retry later`);
+        } else if (error.code === 'CALL_EXCEPTION') {
+          // Note doesn't exist on-chain - likely never deposited, keep as CREATED
+          this.logger.debug(`Note not found on-chain for asset ${note.asset} (status: ${note.status})`);
+        } else {
+          this.logger.error(`Error syncing note for asset ${note.asset} on chain ${chainId}: ${error.message}`);
+        }
       }
     });
   }

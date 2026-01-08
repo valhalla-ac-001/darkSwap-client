@@ -4,6 +4,34 @@ import { WalletConfig } from './configValidator';
 import { DarkSwapException } from '../exception/darkSwap.exception';
 import { FireblocksWeb3Provider } from '@fireblocks/fireblocks-web3-provider';
 
+/**
+ * Rate-limited JsonRpcProvider wrapper
+ * Throttles RPC calls to stay under QuickNode's 15 req/sec limit
+ */
+class RateLimitedProvider extends ethers.JsonRpcProvider {
+  private lastCallTime = 0;
+  private readonly minDelayMs: number;
+
+  constructor(url: string, requestsPerSecond: number = 12) {
+    super(url);
+    // Use 12 req/sec as safe default (80% of 15 req/sec limit)
+    this.minDelayMs = 1000 / requestsPerSecond;
+  }
+
+  override async send(method: string, params: Array<any>): Promise<any> {
+    // Throttle requests
+    const now = Date.now();
+    const timeSinceLastCall = now - this.lastCallTime;
+    
+    if (timeSinceLastCall < this.minDelayMs) {
+      await new Promise(resolve => setTimeout(resolve, this.minDelayMs - timeSinceLastCall));
+    }
+    
+    this.lastCallTime = Date.now();
+    return super.send(method, params);
+  }
+}
+
 class RpcManager {
   private static instance: RpcManager;
   private providers: Map<number, ethers.JsonRpcProvider>;
@@ -20,7 +48,8 @@ class RpcManager {
   private initializeProviders() {
     const config = this.configLoader.getConfig();
     config.chainRpcs.forEach(({ chainId, rpcUrl }) => {
-      const provider = new ethers.JsonRpcProvider(rpcUrl);
+      // Use rate-limited provider to avoid QuickNode limits
+      const provider = new RateLimitedProvider(rpcUrl, 12);
       this.providers.set(chainId, provider);
     });
   }
