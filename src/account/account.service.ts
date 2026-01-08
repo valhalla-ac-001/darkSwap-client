@@ -111,7 +111,7 @@ export class AccountService {
   async syncOneAsset(darkSwapContext: DarkSwapContext, wallet: string, chainId: number, asset: string): Promise<void> {
 
     const notes = (await this.dbService.getNotesByWalletAndChainIdAndAsset(wallet, chainId, asset))
-      .filter(note => note.status !== NoteStatus.SPENT)
+      .filter(note => note.status !== NoteStatus.SPENT && note.status !== NoteStatus.CREATED)
       .sort((a, b) => a.amount < b.amount ? 1 : -1);
 
     this.logger.log(`Syncing ${notes.length} notes for asset ${asset} on chain ${chainId}`);
@@ -155,7 +155,7 @@ export class AccountService {
 
   async syncAssets(darkSwapContext: DarkSwapContext, wallet: string, chainId: number): Promise<void> {
     const notes = (await this.dbService.getNotesByWalletAndChainId(wallet, chainId))
-      .filter(note => note.status !== NoteStatus.SPENT);
+      .filter(note => note.status !== NoteStatus.SPENT && note.status !== NoteStatus.CREATED);
 
     this.logger.log(`Syncing ${notes.length} notes for wallet ${wallet} on chain ${chainId}`);
 
