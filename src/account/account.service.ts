@@ -110,8 +110,20 @@ export class AccountService {
 
   async syncOneAsset(darkSwapContext: DarkSwapContext, wallet: string, chainId: number, asset: string): Promise<void> {
 
+    const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
     const notes = (await this.dbService.getNotesByWalletAndChainIdAndAsset(wallet, chainId, asset))
-      .filter(note => note.status !== NoteStatus.SPENT && note.status !== NoteStatus.CREATED)
+      .filter(note => {
+        // Always skip SPENT notes (immutable)
+        if (note.status === NoteStatus.SPENT) return false;
+        
+        // Skip recent CREATED notes (likely still pending), but check old ones (potential recovery)
+        if (note.status === NoteStatus.CREATED) {
+          return note.createdAt < fiveMinutesAgo;
+        }
+        
+        // Always check ACTIVE and LOCKED notes
+        return true;
+      })
       .sort((a, b) => a.amount < b.amount ? 1 : -1);
 
     this.logger.log(`Syncing ${notes.length} notes for asset ${asset} on chain ${chainId}`);
@@ -154,8 +166,20 @@ export class AccountService {
   }
 
   async syncAssets(darkSwapContext: DarkSwapContext, wallet: string, chainId: number): Promise<void> {
+    const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
     const notes = (await this.dbService.getNotesByWalletAndChainId(wallet, chainId))
-      .filter(note => note.status !== NoteStatus.SPENT && note.status !== NoteStatus.CREATED);
+      .filter(note => {
+        // Always skip SPENT notes (immutable)
+        if (note.status === NoteStatus.SPENT) return false;
+        
+        // Skip recent CREATED notes (likely still pending), but check old ones (potential recovery)
+        if (note.status === NoteStatus.CREATED) {
+          return note.createdAt < fiveMinutesAgo;
+        }
+        
+        // Always check ACTIVE and LOCKED notes
+        return true;
+      });
 
     this.logger.log(`Syncing ${notes.length} notes for wallet ${wallet} on chain ${chainId}`);
 

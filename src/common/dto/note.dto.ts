@@ -10,4 +10,6 @@ export class NoteDto extends BaseDto {
     amount: bigint;
     status: number;
     txHashCreated: string;
+    createdAt: number; // Timestamp from database
+    updatedAt: number; // Timestamp from database
   } 

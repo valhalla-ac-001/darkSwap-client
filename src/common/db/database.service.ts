@@ -28,6 +28,24 @@ export class DatabaseService {
   private static instance: DatabaseService;
   private db: Database.Database;
 
+  private mapNoteEntityToDto(row: NoteEntity): NoteDto {
+    return {
+      id: row.id,
+      chainId: row.chainId,
+      publicKey: row.publicKey,
+      wallet: row.wallet,
+      type: row.type,
+      note: BigInt(row.noteCommitment),
+      rho: BigInt(row.rho),
+      asset: row.asset.toLowerCase(),
+      amount: BigInt(row.amount.toString()),
+      status: row.status,
+      txHashCreated: row.txHashCreated,
+      createdAt: row.createdAt ? new Date(row.createdAt).getTime() : Date.now(),
+      updatedAt: row.updatedAt ? new Date(row.updatedAt).getTime() : Date.now(),
+    };
+  }
+
   private constructor() {
     const dbFilePath = ConfigLoader.getInstance().getConfig().dbFilePath;
     this.db = new Database(dbFilePath)
@@ -80,22 +98,7 @@ export class DatabaseService {
     const query = `SELECT * FROM NOTES WHERE wallet = ? AND chainId = ? AND asset = ? AND status = ? AND type = ?`;
     const stmt = this.db.prepare(query);
     const rows = stmt.all(walletAddress.toLowerCase(), chainId, asset.toLowerCase(), NoteStatus.ACTIVE, NoteType.DARKSWAP) as NoteEntity[];
-
-    const notes = rows.map(row => ({
-      id: row.id,
-      chainId: row.chainId,
-      publicKey: row.publicKey,
-      wallet: row.wallet,
-      type: row.type,
-      note: BigInt(row.noteCommitment),
-      rho: BigInt(row.rho),
-      asset: row.asset.toLowerCase(),
-      amount: BigInt(row.amount),
-      status: row.status,
-      txHashCreated: row.txHashCreated,
-    }));
-
-    return notes;
+    return rows.map(row => this.mapNoteEntityToDto(row));
   }
 
 
@@ -103,44 +106,14 @@ export class DatabaseService {
     const query = `SELECT * FROM NOTES WHERE wallet = ? AND chainId = ? AND asset = ? AND (status = ? OR status = ?)`;
     const stmt = this.db.prepare(query);
     const rows = stmt.all(walletAddress.toLowerCase(), chainId, asset.toLowerCase(), NoteStatus.ACTIVE, NoteStatus.CREATED) as NoteEntity[];
-
-    const notes = rows.map(row => ({
-      id: row.id,
-      chainId: row.chainId,
-      publicKey: row.publicKey,
-      wallet: row.wallet,
-      type: row.type,
-      note: BigInt(row.noteCommitment),
-      rho: BigInt(row.rho),
-      asset: row.asset.toLowerCase(),
-      amount: BigInt(row.amount.toString()),
-      status: row.status,
-      txHashCreated: row.txHashCreated,
-    }));
-
-    return notes;
+    return rows.map(row => this.mapNoteEntityToDto(row));
   }
 
     public async getAssetsNotesByWalletAndChainId(walletAddress: string, chainId: number): Promise<NoteDto[]> {
     const query = `SELECT * FROM NOTES WHERE wallet = ? AND chainId = ? AND (status = ? OR status = ?) AND type = ?`;
     const stmt = this.db.prepare(query);
     const rows = stmt.all(walletAddress.toLowerCase(), chainId, NoteStatus.ACTIVE, NoteStatus.LOCKED, NoteType.DARKSWAP) as NoteEntity[];
-
-    const notes = rows.map(row => ({
-      id: row.id,
-      chainId: row.chainId,
-      publicKey: row.publicKey,
-      wallet: row.wallet,
-      type: row.type,
-      note: BigInt(row.noteCommitment),
-      rho: BigInt(row.rho),
-      asset: row.asset.toLowerCase(),
-      amount: BigInt(row.amount.toString()),
-      status: row.status,
-      txHashCreated: row.txHashCreated,
-    }));
-
-    return notes;
+    return rows.map(row => this.mapNoteEntityToDto(row));
   }
 
 
@@ -148,128 +121,42 @@ export class DatabaseService {
     const query = `SELECT * FROM NOTES WHERE wallet = ? AND chainId = ? AND (status = ? OR status = ?)`;
     const stmt = this.db.prepare(query);
     const rows = stmt.all(walletAddress.toLowerCase(), chainId, NoteStatus.ACTIVE, NoteStatus.CREATED) as NoteEntity[];
-
-    const notes = rows.map(row => ({
-      id: row.id,
-      chainId: row.chainId,
-      publicKey: row.publicKey,
-      wallet: row.wallet,
-      type: row.type,
-      note: BigInt(row.noteCommitment),
-      rho: BigInt(row.rho),
-      asset: row.asset.toLowerCase(),
-      amount: BigInt(row.amount.toString()),
-      status: row.status,
-      txHashCreated: row.txHashCreated,
-    }));
-
-    return notes;
+    return rows.map(row => this.mapNoteEntityToDto(row));
   }
 
   public async getNotesByWallet(walletAddress: string): Promise<NoteDto[]> {
     const query = `SELECT * FROM NOTES WHERE wallet = ? AND (status = ? OR status = ?)`;
     const stmt = this.db.prepare(query);
     const rows = stmt.all(walletAddress.toLowerCase(), NoteStatus.ACTIVE, NoteStatus.LOCKED) as NoteEntity[];
-
-    const notes = rows.map(row => ({
-      id: row.id,
-      chainId: row.chainId,
-      publicKey: row.publicKey,
-      wallet: row.wallet,
-      type: row.type,
-      note: BigInt(row.noteCommitment),
-      rho: BigInt(row.rho),
-      asset: row.asset.toLowerCase(),
-      amount: BigInt(row.amount.toString()),
-      status: row.status,
-      txHashCreated: row.txHashCreated,
-    }));
-
-    return notes;
+    return rows.map(row => this.mapNoteEntityToDto(row));
   }
 
   public async getNotesByAsset(asset: string, chainId: number): Promise<NoteDto[]> {
     const query = `SELECT * FROM NOTES WHERE asset = ? AND chainId = ? AND status = ? ORDER BY amount DESC`;
     const stmt = this.db.prepare(query);
     const rows = stmt.all(asset.toLowerCase(), chainId, NoteStatus.ACTIVE) as NoteEntity[];
-
-    const notes = rows.map(row => ({
-      id: row.id,
-      chainId: row.chainId,
-      publicKey: row.publicKey,
-      wallet: row.wallet,
-      type: row.type,
-      note: BigInt(row.noteCommitment),
-      rho: BigInt(row.rho),
-      asset: row.asset,
-      amount: BigInt(row.amount.toString()),
-      status: row.status,
-      txHashCreated: row.txHashCreated
-    }));
-
-    return notes;
+    return rows.map(row => this.mapNoteEntityToDto(row));
   }
 
   public async getNoteByCommitment(noteCommitment: string): Promise<NoteDto> {
     const query = `SELECT * FROM NOTES WHERE noteCommitment = ?`;
     const stmt = this.db.prepare(query);
     const row = stmt.get(noteCommitment) as NoteEntity;
-    const note = {
-      id: row.id,
-      chainId: row.chainId,
-      publicKey: row.publicKey,
-      wallet: row.wallet,
-      type: row.type,
-      note: BigInt(row.noteCommitment),
-      rho: BigInt(row.rho),
-      asset: row.asset,
-      amount: BigInt(row.amount.toString()),
-      status: row.status,
-      txHashCreated: row.txHashCreated
-    };
-    return note;
+    return this.mapNoteEntityToDto(row);
   }
 
   public async getNoteByOrderId(orderId: string): Promise<NoteDto> {
     const query = `SELECT * FROM NOTES WHERE orderId = ?`;
     const stmt = this.db.prepare(query);
     const row = stmt.get(orderId) as NoteEntity;
-    const note = {
-      id: row.id,
-      chainId: row.chainId,
-      publicKey: row.publicKey,
-      wallet: row.wallet,
-      type: row.type,
-      note: BigInt(row.noteCommitment),
-      rho: BigInt(row.rho),
-      asset: row.asset,
-      amount: BigInt(row.amount.toString()),
-      status: row.status,
-      txHashCreated: row.txHashCreated
-    };
-    return note;
+    return this.mapNoteEntityToDto(row);
   }
 
   public async getNoteByAssetAndAmount(asset: string, amount: bigint, chainId: number): Promise<NoteDto[]> {
     const query = `SELECT * FROM NOTES WHERE asset = ? AND amount =? chainId = ? AND status = ? ORDER BY amount DESC`;
     const stmt = this.db.prepare(query);
     const rows = stmt.all(asset, amount.toString(), chainId, NoteStatus.ACTIVE) as NoteEntity[];
-
-    const notes = rows.map(row => ({
-      id: row.id,
-      chainId: row.chainId,
-      publicKey: row.publicKey,
-      wallet: row.wallet,
-      type: row.type,
-      note: BigInt(row.noteCommitment),
-      rho: BigInt(row.rho),
-      asset: row.asset,
-      amount: BigInt(row.amount.toString()),
-      status: row.status,
-      txHashCreated: row.txHashCreated,
-    }));
-
-    return notes;
+    return rows.map(row => this.mapNoteEntityToDto(row));
   }
 
   public updateNoteTransactionAndStatus(id: number, txHash: string) {
