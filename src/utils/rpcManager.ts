@@ -6,7 +6,7 @@ import { FireblocksWeb3Provider } from '@fireblocks/fireblocks-web3-provider';
 
 /**
  * Rate-limited JsonRpcProvider wrapper
- * Throttles RPC calls to stay under QuickNode's 15 req/sec limit
+ * Throttles RPC calls to stay under QuickNode's 50 req/sec limit
  * Includes retry logic for rate limit errors
  */
 class RateLimitedProvider extends ethers.JsonRpcProvider {
@@ -14,10 +14,10 @@ class RateLimitedProvider extends ethers.JsonRpcProvider {
   private readonly minDelayMs: number;
   private readonly maxRetries = 3;
 
-  constructor(url: string, requestsPerSecond: number = 8) {
+  constructor(url: string, requestsPerSecond: number = 30) {
     super(url);
-    // Use 8 req/sec as safe default (~53% of 15 req/sec limit)
-    // More conservative to handle burst scenarios
+    // Use 30 req/sec as safe default (~60% of 50 req/sec limit)
+    // Leave headroom to handle burst scenarios
     this.minDelayMs = 1000 / requestsPerSecond;
   }
 
@@ -78,7 +78,7 @@ class RpcManager {
     const config = this.configLoader.getConfig();
     config.chainRpcs.forEach(({ chainId, rpcUrl }) => {
       // Use rate-limited provider to avoid QuickNode limits
-      const provider = new RateLimitedProvider(rpcUrl, 12);
+      const provider = new RateLimitedProvider(rpcUrl, 30);
       this.providers.set(chainId, provider);
     });
   }
