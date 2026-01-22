@@ -7,8 +7,9 @@ import { ConfigLoader } from '../utils/configUtil';
 import { UpdatePriceDto } from '../orders/dto/updatePrice.dto';
 import { OrderDto } from '../orders/dto/order.dto';
 import { DarkSwapException } from '../exception/darkSwap.exception';
-import { OrderType } from '../types';
+import { OrderType, SimpleOrder } from '../types';
 import { BobPostSettlementDto } from '../settlement/dto/bobPostSettlement.dto';
+import { QueryOrderBookDto } from '../orders/dto/queryOrderBook.dto';
 
 interface BookNodeMatchedOrder {
     orderId: string;
@@ -187,5 +188,15 @@ export class BooknodeService {
     public async bobPostSettlement(bobPostSettlementDto: BobPostSettlementDto): Promise<any> {
         const result = await this.sendRequest(bobPostSettlementDto, '/api/orders/takerSettled');
         return result.data;
+    }
+
+    public async getOrderBook(dto: QueryOrderBookDto): Promise<SimpleOrder[]> {
+        const result = await this.sendRequest(dto, '/api/vip/orderbook');
+        return result.data.data.map((order: any) => ({
+            price: order.price,
+            amountOut: BigInt(order.amountOut),
+            amountIn: BigInt(order.amountIn),
+            clientId: Number(order.clientId)
+        }));
     }
 }

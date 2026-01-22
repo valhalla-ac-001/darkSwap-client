@@ -84,3 +84,10 @@ export enum TimeInForce {
     AON_GTC = 8,
     AON_GTD = 9,
 }
+
+export interface SimpleOrder {
+    price: number;
+    amountOut: bigint;
+    amountIn: bigint;
+    clientId: number;
+}
