@@ -9,7 +9,7 @@ import { OrderDto } from '../orders/dto/order.dto';
 import { DarkSwapException } from '../exception/darkSwap.exception';
 import { OrderType, SimpleOrder } from '../types';
 import { BobPostSettlementDto } from '../settlement/dto/bobPostSettlement.dto';
-import { QueryOrderBookDto } from '../orders/dto/queryOrderBook.dto';
+import { QueryOrderBookDto } from '../orders/dto/query-order-book.dto';
 
 interface BookNodeMatchedOrder {
     orderId: string;
