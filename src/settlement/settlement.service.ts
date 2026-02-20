@@ -1,4 +1,4 @@
-import { calcNullifier, DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote } from '@thesingularitynetwork/darkswap-sdk';
+import { calcNullifier, DarkSwapMessage, DarkSwapNote, DarkSwapOrderNote, isAddressEquals } from '@thesingularitynetwork/darkswap-sdk';
 import { deserializeDarkSwapMessage, getNoteOnChainStatusByPublicKey, getNoteOnChainStatusBySignature, hexlify32, ProSwapService, NoteOnChainStatus, serializeDarkSwapMessage } from '@thesingularitynetwork/darkswap-sdk';
 import { BooknodeService } from '../common/booknode.service';
 import { DarkSwapContext } from '../common/context/darkSwap.context';
@@ -194,7 +194,7 @@ export class SettlementService {
       address: orderInfo.wallet
     } as DarkSwapOrderNote;
 
-    const swapInAsset = orderNote.asset === assetPair.quoteAddress ? assetPair.baseAddress : assetPair.quoteAddress;
+    const swapInAsset = isAddressEquals(orderNote.asset, assetPair.quoteAddress) ? assetPair.baseAddress : assetPair.quoteAddress;
 
     const darkSwapContext = await DarkSwapContext.createDarkSwapContext(orderInfo.chainId, orderInfo.wallet);
     const darkSwapMessage = await ProSwapService.prepareProSwapMessageForBob(
