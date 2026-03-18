@@ -1,13 +1,14 @@
-import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus } from '@nestjs/common';
+import { DarkSwapError, DarkSwapProofError } from '@thesingularitynetwork/darkswap-sdk';
 import { DarkSwapException } from '../exception/darkSwap.exception';
-import { DarkSwapResponse, DarkSwapSimpleResponse } from './response.interface';
+import { DarkSwapSimpleResponse } from './response.interface';
 
-@Catch(DarkSwapException)
+@Catch(DarkSwapException, DarkSwapError, DarkSwapProofError)
 export class DarkSwapExceptionFilter implements ExceptionFilter {
-  catch(exception: DarkSwapException, host: ArgumentsHost) {
+  catch(exception: DarkSwapException | DarkSwapError | DarkSwapProofError, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
-    const status = exception.getStatus();
+    const status = HttpStatus.BAD_REQUEST;
 
     const responseBody: DarkSwapSimpleResponse = {
       code: status,

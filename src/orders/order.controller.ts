@@ -33,6 +33,10 @@ export class OrderController {
       }
     }
 
+    if (BigInt(orderDto.partialAmountIn ?? orderDto.amountIn) > BigInt(orderDto.amountIn)) {
+      throw new DarkSwapError('Partial amount in must be less than or equal to amount in');
+    }
+
     if (orderDto.orderType === OrderType.STOP_LOSS_LIMIT
       || orderDto.orderType === OrderType.STOP_LOSS
       || orderDto.orderType === OrderType.TAKE_PROFIT
@@ -40,6 +44,10 @@ export class OrderController {
       if (!orderDto.orderTriggerPrice || isNaN(Number(orderDto.orderTriggerPrice)) || Number(orderDto.orderTriggerPrice) <= 0) {
         throw new DarkSwapError('Order trigger price is required for stop loss or take profit orders');
       }
+    }
+
+    if (orderDto.orderType === OrderType.MARKET) {
+      throw new DarkSwapError('Market order is not supported');
     }
 
     const context = await DarkSwapContext.createDarkSwapContext(orderDto.chainId, orderDto.wallet);
