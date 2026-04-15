@@ -1,6 +1,7 @@
 import { HexData, NetworkConfig } from '../types'
 import { ChainId } from '../types'
-import { hardhatContracts } from './contracts/hardhat'
+import hardhatContracts from './contracts/hardhat.json'
+import { hardhatBaseContracts } from './contracts/hardhatBase'
 
 const confirmationsConfig: { [chainId: number]: number } = {
   [ChainId.MAINNET]: 12,
@@ -8,7 +9,7 @@ const confirmationsConfig: { [chainId: number]: number } = {
   [ChainId.BASE]: 6,
   [ChainId.SEPOLIA]: 3,
   [ChainId.HARDHAT]: 3,
-  [ChainId.HARDHAT_ARBITRUM]: 3,
+  [ChainId.HARDHAT_BASE]: 3,
 }
 
 const DEFAULT_CONFIRMATIONS = 6;
@@ -23,8 +24,8 @@ export const networkConfig: { [chainId: number]: NetworkConfig } = {
     ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
     nativeWrapper: '0x4200000000000000000000000000000000000006',
     merkleTreeOperator: '0x918B4F76CAE5F67A3818D8eD3d0e11D9888684E9',
-    darkSwapAssetManager: '0x6fbA1F1aAb8449b7ba576E41F4617d918391b7cF',
-    darkSwapFeeAssetManager: '0xfde341e63EB2f25A32D353d58C2DAd7f91c8Bd57',
+    darkSwapAssetManager: '0x43f3Af9133f61b79eD4683Deb201E5FDbA42DBE9',
+    darkSwapFeeAssetManager: '0x5D130d32A962c1F86A9378d07b60b46De86e6855',
     darkSwapSubgraphUrl: 'https://subgraph.thesingularity.network/darkswapBase'
   },
   [ChainId.SEPOLIA]: {
@@ -55,6 +56,16 @@ export const networkConfig: { [chainId: number]: NetworkConfig } = {
     darkSwapAssetManager: hardhatContracts.darkSwapAssetManager as HexData,
     darkSwapFeeAssetManager: hardhatContracts.darkSwapFeeAssetManager as HexData,
     darkSwapSubgraphUrl:
-      'https://app.dev.portalgate.me:8080/subgraphs/name/singularity/'
+      'https://app.dev.portalgate.me:8080/subgraphs/name/darkswap/'
+  },
+  [ChainId.HARDHAT_BASE]: {
+    priceOracle: '0x0AdDd25a91563696D8567Df78D5A01C9a991F9B8',
+    ethAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+    nativeWrapper: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2',
+    merkleTreeOperator: hardhatBaseContracts.merkleTreeOperator as HexData,
+    darkSwapAssetManager: hardhatBaseContracts.darkSwapAssetManager as HexData,
+    darkSwapFeeAssetManager: hardhatBaseContracts.darkSwapFeeAssetManager as HexData,
+    darkSwapSubgraphUrl:
+      'https://app.dev.portalgate.me:48080/subgraphs/name/singularityBase/'
   }
 }

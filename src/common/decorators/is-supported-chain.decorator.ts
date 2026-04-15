@@ -6,6 +6,7 @@ export enum SupportedChainId {
   BASE = 8453,
   HARDHAT = 31337,
   HARDHAT_ARBITRUM = 31338,
+  HARDHAT_BASE = 31339,
 } 
 
 export function IsSupportedChain(validationOptions?: ValidationOptions) {

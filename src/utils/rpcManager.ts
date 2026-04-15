@@ -4,63 +4,6 @@ import { WalletConfig } from './configValidator';
 import { DarkSwapException } from '../exception/darkSwap.exception';
 import { FireblocksWeb3Provider } from '@fireblocks/fireblocks-web3-provider';
 
-/**
- * Rate-limited JsonRpcProvider wrapper
- * Throttles RPC calls to stay under QuickNode's 50 req/sec limit
- * Includes retry logic for rate limit errors
- */
-class RateLimitedProvider extends ethers.JsonRpcProvider {
-  private lastCallTime = 0;
-  private readonly minDelayMs: number;
-  private readonly maxRetries = 3;
-
-  constructor(url: string, requestsPerSecond: number = 30) {
-    super(url);
-    // Use 30 req/sec as safe default (~60% of 50 req/sec limit)
-    // Leave headroom to handle burst scenarios
-    this.minDelayMs = 1000 / requestsPerSecond;
-  }
-
-  override async send(method: string, params: Array<any>): Promise<any> {
-    let lastError: any;
-    
-    for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
-      try {
-        // Throttle requests
-        const now = Date.now();
-        const timeSinceLastCall = now - this.lastCallTime;
-        
-        if (timeSinceLastCall < this.minDelayMs) {
-          await new Promise(resolve => setTimeout(resolve, this.minDelayMs - timeSinceLastCall));
-        }
-        
-        this.lastCallTime = Date.now();
-        return await super.send(method, params);
-        
-      } catch (error: any) {
-        lastError = error;
-        
-        // Check if it's a rate limit error
-        const isRateLimit = error?.error?.code === -32007 || 
-                           error?.message?.includes('request limit reached');
-        
-        if (isRateLimit && attempt < this.maxRetries) {
-          // Exponential backoff: 1s, 2s, 4s
-          const backoffMs = 1000 * Math.pow(2, attempt);
-          console.warn(`Rate limit hit, retrying in ${backoffMs}ms (attempt ${attempt + 1}/${this.maxRetries})`);
-          await new Promise(resolve => setTimeout(resolve, backoffMs));
-          continue;
-        }
-        
-        // Not a rate limit error or out of retries
-        throw error;
-      }
-    }
-    
-    throw lastError;
-  }
-}
-
 class RpcManager {
   private static instance: RpcManager;
   private providers: Map<number, ethers.JsonRpcProvider>;
@@ -77,8 +20,7 @@ class RpcManager {
   private initializeProviders() {
     const config = this.configLoader.getConfig();
     config.chainRpcs.forEach(({ chainId, rpcUrl }) => {
-      // Use rate-limited provider to avoid QuickNode limits
-      const provider = new RateLimitedProvider(rpcUrl, 30);
+      const provider = new ethers.JsonRpcProvider(rpcUrl);
       this.providers.set(chainId, provider);
     });
   }

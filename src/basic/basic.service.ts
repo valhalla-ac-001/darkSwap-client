@@ -6,6 +6,7 @@ import { NotesJoinService } from '../common/notesJoin.service';
 import { NoteService } from '../common/note.service';
 import { getConfirmations } from '../config/networkConfig';
 import { DarkSwapException } from '../exception/darkSwap.exception';
+import { AccountService } from '../account/account.service';
 
 @Injectable()
 export class BasicService {
@@ -16,10 +17,12 @@ export class BasicService {
   private dbService: DatabaseService;
   private noteService: NoteService;
   private notesJoinService: NotesJoinService;
+  private accountService: AccountService;
   public constructor() {
     this.dbService = DatabaseService.getInstance();
     this.noteService = NoteService.getInstance();
     this.notesJoinService = NotesJoinService.getInstance();
+    this.accountService = new AccountService();
   }
 
   // Method to deposit funds
@@ -51,7 +54,25 @@ export class BasicService {
   async withdraw(darkSwapContext: DarkSwapContext, asset: Token, amount: bigint) {
     const withdrawService = new WithdrawService(darkSwapContext.darkSwap);
 
-    const currentBalanceNote = await this.notesJoinService.getCurrentBalanceNote(darkSwapContext, asset.address);
+    // Refresh note statuses first to avoid failing withdraw on stale local state.
+    await this.accountService.syncOneAsset(
+      darkSwapContext,
+      darkSwapContext.walletAddress,
+      darkSwapContext.chainId,
+      asset.address,
+    );
+
+    let currentBalanceNote = await this.notesJoinService.getCurrentBalanceNote(darkSwapContext, asset.address);
+
+    // Retry once after full sync in case balance changed while processing queued events.
+    if (currentBalanceNote.amount < amount) {
+      await this.accountService.syncAssets(
+        darkSwapContext,
+        darkSwapContext.walletAddress,
+        darkSwapContext.chainId,
+      );
+      currentBalanceNote = await this.notesJoinService.getCurrentBalanceNote(darkSwapContext, asset.address);
+    }
 
     if (currentBalanceNote.amount < amount) {
       throw new DarkSwapException("Insufficient funds");

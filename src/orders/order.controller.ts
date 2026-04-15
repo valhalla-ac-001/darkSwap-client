@@ -10,7 +10,6 @@ import { OrderService } from './order.service';
 import { DarkSwapError } from '@thesingularitynetwork/darkswap-sdk';
 import { OrderType } from '../types';
 import { WalletMutexService } from '../common/mutex/walletMutex.service';
-import { SettlementService } from '../settlement/settlement.service';
 
 @Controller('orders')
 export class OrderController {
@@ -33,7 +32,7 @@ export class OrderController {
       }
     }
 
-    if (BigInt(orderDto.partialAmountIn ?? orderDto.amountIn) > BigInt(orderDto.amountIn)) {
+    if (orderDto.partialAmountIn > orderDto.amountIn) {
       throw new DarkSwapError('Partial amount in must be less than or equal to amount in');
     }
 
@@ -97,47 +96,6 @@ export class OrderController {
   @ApiGenericArrayResponse(AssetPairDto)
   getAssetPairs(@Query('chainId') chainId: number) {
     return this.orderService.getAssetPairs(chainId);
-  }
-
-  @Delete('forceCleanupOrder/:orderId')
-  @ApiResponse({
-    status: 200,
-    description: 'Force cleanup ghost order (admin only - use with caution)',
-    type: DarkSwapSimpleResponse
-  })
-  async forceCleanupOrder(@Param('orderId') orderId: string) {
-    return await this.orderService.forceCleanupGhostOrder(orderId);
-  }
-
-  @Post('retrySettlement/:orderId')
-  @ApiResponse({
-    status: 200,
-    description: 'Manually retry settlement for a matched order',
-    type: DarkSwapSimpleResponse
-  })
-  async retrySettlement(@Param('orderId') orderId: string) {
-    const order = await this.orderService.getOrderById(orderId);
-    if (!order) {
-      throw new DarkSwapError('Order not found');
-    }
-    
-    const settlementService = SettlementService.getInstance();
-    const mutex = this.walletMutexService.getMutex(order.chainId, order.wallet.toLowerCase());
-    
-    await mutex.runExclusive(async () => {
-      await settlementService.aliceSwap(order);
-    });
-    
-    return { message: `Settlement retry initiated for order ${orderId}` };
-  }
-
-  @Get('diagnoseOrder/:orderId')
-  @ApiResponse({
-    status: 200,
-    description: 'Diagnose a stuck order',
-  })
-  async diagnoseOrder(@Param('orderId') orderId: string) {
-    return await this.orderService.diagnoseStuckOrder(orderId);
   }
 
 }

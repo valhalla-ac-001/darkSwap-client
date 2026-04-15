@@ -66,8 +66,8 @@ export class SettlementService {
 
   async doAliceMarketSwap(orderInfo: OrderDto, matchedOrderDto: MatchedOrderDto) {
     const swapMessage = deserializeDarkSwapMarketMessage(matchedOrderDto.bobSwapMessage);
-
     const darkSwapContext = await DarkSwapContext.createDarkSwapContext(orderInfo.chainId, orderInfo.wallet);
+    //check note status
     const rawNote = await this.dbService.getNoteByCommitment(orderInfo.noteCommitment);
     const orderNote = this.noteDtoToNote(rawNote);
     const aliceNoteOnChainStatus = await getNoteOnChainStatusBySignature(
@@ -97,7 +97,8 @@ export class SettlementService {
 
     await this.checkBobNoteStatusOfMarketOrder(darkSwapContext, swapMessage);
 
-    await this.dbService.getAssetPairById(orderInfo.assetPairId, orderInfo.chainId);
+    const assetPair = await this.dbService.getAssetPairById(orderInfo.assetPairId, orderInfo.chainId);
+    const bobAsset = orderInfo.orderDirection === OrderDirection.BUY ? assetPair.quoteAddress : assetPair.baseAddress;
 
     const proMarketSwapService = new ProMarketSwapService(darkSwapContext.relayerDarkSwap);
     const { context, swapInNote, changeNote } = await proMarketSwapService.prepare(
@@ -130,7 +131,7 @@ export class SettlementService {
     await this.orderEventService.logOrderStatusChange(orderInfo.orderId, orderInfo.wallet, orderInfo.chainId, OrderStatus.MATCHED);
 
     const matchedOrderDto = await this.booknodeService.getMatchedOrderDetails(orderInfo);
-    if (matchedOrderDto.isMarket) {
+    if(matchedOrderDto.isMarket) {
       await this.doAliceMarketSwap(orderInfo, matchedOrderDto);
     } else {
       await this.doAliceNormalSwap(orderInfo, matchedOrderDto);
@@ -139,7 +140,6 @@ export class SettlementService {
 
   async doAliceNormalSwap(orderInfo: OrderDto, matchedOrderDto: MatchedOrderDto) {
     const bobSwapMessage = deserializeDarkSwapMessage(matchedOrderDto.bobSwapMessage);
-
     const darkSwapContext = await DarkSwapContext.createDarkSwapContext(orderInfo.chainId, orderInfo.wallet);
 
     const rawNote = await this.dbService.getNoteByCommitment(orderInfo.noteCommitment);

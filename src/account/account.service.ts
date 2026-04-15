@@ -5,7 +5,6 @@ import { MyAssetsDto } from './dto/asset.dto';
 import { getNoteOnChainStatusBySignature, NoteOnChainStatus } from '@thesingularitynetwork/darkswap-sdk';
 import { DarkSwapContext } from '../common/context/darkSwap.context';
 import { ConfigLoader } from '../utils/configUtil';
-import { BatchProcessor } from '../utils/rateLimiter';
 
 @Injectable()
 export class AccountService {
@@ -14,16 +13,6 @@ export class AccountService {
 
   private static instance: AccountService;
   private dbService: DatabaseService;
-  
-  // Very conservative batching to avoid rate limits
-  // Process 2 notes per batch with 1 second delay
-  // At 8 req/sec provider limit + 2-3 calls per note = ~4-6 calls per batch
-  // This ensures we never exceed QuickNode's 15 req/sec limit
-  private batchProcessor = new BatchProcessor(2, 1000);
-  
-  // Track last ghost note purge to avoid running too frequently
-  private lastPurgeTime: number = 0;
-  private readonly PURGE_INTERVAL_MS = 60 * 60 * 1000; // Run purge at most once per hour
 
   public constructor() {
     this.dbService = DatabaseService.getInstance();
@@ -115,133 +104,67 @@ export class AccountService {
   }
 
   async syncOneAsset(darkSwapContext: DarkSwapContext, wallet: string, chainId: number, asset: string): Promise<void> {
-    // Clean up ghost notes older than 2 hours (throttled to run max once per hour)
-    const now = Date.now();
-    if (now - this.lastPurgeTime > this.PURGE_INTERVAL_MS) {
-      const deletedCount = this.dbService.purgeGhostNotes(2);
-      if (deletedCount > 0) {
-        this.logger.log(`Purged ${deletedCount} ghost notes older than 2 hours`);
-      }
-      this.lastPurgeTime = now;
-    }
 
-    const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
-    const notes = (await this.dbService.getNotesByWalletAndChainIdAndAsset(wallet, chainId, asset))
-      .filter(note => {
-        // Always skip SPENT notes (immutable)
-        if (note.status === NoteStatus.SPENT) return false;
-        
-        // Skip recent CREATED notes (likely still pending), but check old ones (potential recovery)
-        if (note.status === NoteStatus.CREATED) {
-          return note.createdAt < fiveMinutesAgo;
-        }
-        
-        // Always check ACTIVE and LOCKED notes
-        return true;
-      })
-      .sort((a, b) => a.amount < b.amount ? 1 : -1);
+    const notes = (await this.dbService.getNotesByWalletAndChainIdAndAsset(wallet, chainId, asset)).sort((a, b) => a.amount < b.amount ? 1 : -1);
 
-    this.logger.log(`Syncing ${notes.length} notes for asset ${asset} on chain ${chainId}`);
-
-    // Process notes in batches to avoid rate limiting
-    await this.batchProcessor.processBatch(notes, async (note) => {
+    for (const note of notes) {
       try {
-        const onChainStatus = await getNoteOnChainStatusBySignature(
-          darkSwapContext.darkSwap,
-          {
-            note: note.note,
-            rho: note.rho,
-            amount: note.amount,
-            asset: note.asset,
-            address: note.wallet
-          },
-          darkSwapContext.signature);
-        
-        if (onChainStatus == NoteOnChainStatus.ACTIVE && note.status != NoteStatus.ACTIVE) {
-          this.dbService.updateNoteActiveByWalletAndNoteCommitment(wallet, chainId, note.note);
-        } else if (onChainStatus == NoteOnChainStatus.LOCKED && note.status != NoteStatus.LOCKED) {
-          this.dbService.updateNoteLockedByWalletAndNoteCommitment(wallet, chainId, note.note);
-        } else if (onChainStatus == NoteOnChainStatus.SPENT && note.status != NoteStatus.SPENT) {
-          this.dbService.updateNoteSpentByWalletAndNoteCommitment(wallet, chainId, note.note);
-        } else if (onChainStatus == NoteOnChainStatus.UNKNOWN && note.status != NoteStatus.CREATED) {
-          this.dbService.updateNoteCreatedByWalletAndNoteCommitment(wallet, chainId, note.note);
+        if (note.status != NoteStatus.SPENT) {
+          const onChainStatus = await getNoteOnChainStatusBySignature(
+            darkSwapContext.darkSwap,
+            {
+              note: note.note,
+              rho: note.rho,
+              amount: note.amount,
+              asset: note.asset,
+              address: note.wallet
+            },
+            darkSwapContext.signature);
+          if (onChainStatus == NoteOnChainStatus.ACTIVE && note.status != NoteStatus.ACTIVE) {
+            this.dbService.updateNoteActiveByWalletAndNoteCommitment(wallet, chainId, note.note);
+          } else if (onChainStatus == NoteOnChainStatus.LOCKED && note.status != NoteStatus.LOCKED) {
+            this.dbService.updateNoteLockedByWalletAndNoteCommitment(wallet, chainId, note.note);
+          } else if (onChainStatus == NoteOnChainStatus.SPENT && note.status != NoteStatus.SPENT) {
+            this.dbService.updateNoteSpentByWalletAndNoteCommitment(wallet, chainId, note.note);
+          } else if (onChainStatus == NoteOnChainStatus.UNKNOWN && note.status != NoteStatus.CREATED) {
+            this.dbService.updateNoteCreatedByWalletAndNoteCommitment(wallet, chainId, note.note);
+          }
         }
       } catch (error) {
-        // Check if it's a rate limit error vs missing note
-        if (error.message?.includes('request limit reached')) {
-          this.logger.warn(`Rate limit hit while syncing note for asset ${note.asset}, will retry later`);
-        } else if (error.code === 'CALL_EXCEPTION') {
-          // Note doesn't exist on-chain - likely never deposited, keep as CREATED
-          this.logger.debug(`Note not found on-chain for asset ${note.asset} (status: ${note.status})`);
-        } else {
-          this.logger.error(`Error syncing note for asset ${note.asset} on chain ${chainId}: ${error.message}`);
-        }
+        this.logger.error(`Error syncing asset ${note.asset} on chain ${chainId}: ${error.message}`);
       }
-    });
+    }
   }
 
   async syncAssets(darkSwapContext: DarkSwapContext, wallet: string, chainId: number): Promise<void> {
-    // Clean up ghost notes older than 2 hours (throttled to run max once per hour)
-    const now = Date.now();
-    if (now - this.lastPurgeTime > this.PURGE_INTERVAL_MS) {
-      const deletedCount = this.dbService.purgeGhostNotes(2);
-      if (deletedCount > 0) {
-        this.logger.log(`Purged ${deletedCount} ghost notes older than 2 hours`);
-      }
-      this.lastPurgeTime = now;
-    }
+    const notes = await this.dbService.getNotesByWalletAndChainId(wallet, chainId);
 
-    const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
-    const notes = (await this.dbService.getNotesByWalletAndChainId(wallet, chainId))
-      .filter(note => {
-        // Always skip SPENT notes (immutable)
-        if (note.status === NoteStatus.SPENT) return false;
-        
-        // Skip recent CREATED notes (likely still pending), but check old ones (potential recovery)
-        if (note.status === NoteStatus.CREATED) {
-          return note.createdAt < fiveMinutesAgo;
-        }
-        
-        // Always check ACTIVE and LOCKED notes
-        return true;
-      });
-
-    this.logger.log(`Syncing ${notes.length} notes for wallet ${wallet} on chain ${chainId}`);
-
-    // Process notes in batches to avoid rate limiting
-    await this.batchProcessor.processBatch(notes, async (note) => {
+    for (const note of notes) {
       try {
-        const onChainStatus = await getNoteOnChainStatusBySignature(
-          darkSwapContext.darkSwap,
-          {
-            note: note.note,
-            rho: note.rho,
-            amount: note.amount,
-            asset: note.asset,
-            address: note.wallet
-          },
-          darkSwapContext.signature);
-        
-        if (onChainStatus == NoteOnChainStatus.ACTIVE && note.status != NoteStatus.ACTIVE) {
-          this.dbService.updateNoteActiveByWalletAndNoteCommitment(wallet, chainId, note.note);
-        } else if (onChainStatus == NoteOnChainStatus.LOCKED && note.status != NoteStatus.LOCKED) {
-          this.dbService.updateNoteLockedByWalletAndNoteCommitment(wallet, chainId, note.note);
-        } else if (onChainStatus == NoteOnChainStatus.SPENT && note.status != NoteStatus.SPENT) {
-          this.dbService.updateNoteSpentByWalletAndNoteCommitment(wallet, chainId, note.note);
-        } else if (onChainStatus == NoteOnChainStatus.UNKNOWN && note.status != NoteStatus.CREATED) {
-          this.dbService.updateNoteCreatedByWalletAndNoteCommitment(wallet, chainId, note.note);
+        if (note.status != NoteStatus.SPENT) {
+          const onChainStatus = await getNoteOnChainStatusBySignature(
+            darkSwapContext.darkSwap,
+            {
+              note: note.note,
+              rho: note.rho,
+              amount: note.amount,
+              asset: note.asset,
+              address: note.wallet
+            },
+            darkSwapContext.signature);
+          if (onChainStatus == NoteOnChainStatus.ACTIVE && note.status != NoteStatus.ACTIVE) {
+            this.dbService.updateNoteActiveByWalletAndNoteCommitment(wallet, chainId, note.note);
+          } else if (onChainStatus == NoteOnChainStatus.LOCKED && note.status != NoteStatus.LOCKED) {
+            this.dbService.updateNoteLockedByWalletAndNoteCommitment(wallet, chainId, note.note);
+          } else if (onChainStatus == NoteOnChainStatus.SPENT && note.status != NoteStatus.SPENT) {
+            this.dbService.updateNoteSpentByWalletAndNoteCommitment(wallet, chainId, note.note);
+          } else if (onChainStatus == NoteOnChainStatus.UNKNOWN && note.status != NoteStatus.CREATED) {
+            this.dbService.updateNoteCreatedByWalletAndNoteCommitment(wallet, chainId, note.note);
+          }
         }
       } catch (error) {
-        // Check if it's a rate limit error vs missing note
-        if (error.message?.includes('request limit reached')) {
-          this.logger.warn(`Rate limit hit while syncing note for asset ${note.asset}, will retry later`);
-        } else if (error.code === 'CALL_EXCEPTION') {
-          // Note doesn't exist on-chain - likely never deposited, keep as CREATED
-          this.logger.debug(`Note not found on-chain for asset ${note.asset} (status: ${note.status})`);
-        } else {
-          this.logger.error(`Error syncing note for asset ${note.asset} on chain ${chainId}: ${error.message}`);
-        }
+        this.logger.error(`Error syncing asset ${note.asset} on chain ${chainId}: ${error.message}`);
       }
-    });
+    }
   }
 }

@@ -2,12 +2,14 @@ import { Token } from "@thesingularitynetwork/darkswap-sdk";
 import { ChainId } from "../types";
 import { hardhatTokens } from "./tokens/hardhat";
 import { hardhatArbTokens } from "./tokens/hardhatArb";
+import { hardhatBaseTokens } from "./tokens/hardhatBase";
 import { sepoliaTokens } from "./tokens/sepolia";
 import { horizenTestNetTokens } from "./tokens/horizenTestNet";
 
 export const tokenConfig: { [key: string]: Token[] } = {
     [ChainId.HARDHAT]: hardhatTokens,
     [ChainId.HARDHAT_ARBITRUM]: hardhatArbTokens,
+    [ChainId.HARDHAT_BASE]: hardhatBaseTokens,
     [ChainId.SEPOLIA]: sepoliaTokens,
     [ChainId.HORIZEN_TESTNET]: horizenTestNetTokens,
     [ChainId.MAINNET]: [
