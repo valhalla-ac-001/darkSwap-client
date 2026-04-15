@@ -11,7 +11,7 @@
       "target": "es2020",
       "sourceMap": true,
       "outDir": "./dist",
-      "rootDir": "./",
+      "rootDir": "./src",
       "strict": false,
       "strictNullChecks": false,
       "strictPropertyInitialization": false,
@@ -20,6 +20,6 @@
       "incremental": true,
       "skipLibCheck": true
     },
-    "include": ["src/**/*", "config.yaml"],
+    "include": ["src/**/*"],
     "exclude": ["node_modules", "dist"]
   }
