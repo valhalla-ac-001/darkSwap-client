@@ -12,6 +12,10 @@
       "sourceMap": true,
       "outDir": "./dist",
       "rootDir": "./",
+      "strict": false,
+      "strictNullChecks": false,
+      "strictPropertyInitialization": false,
+      "useUnknownInCatchVariables": false,
       // "baseUrl": "./",
       "incremental": true,
       "skipLibCheck": true
